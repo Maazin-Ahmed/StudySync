@@ -13,6 +13,10 @@ import CreateSession from './pages/CreateSession';
 import SessionLobby from './pages/SessionLobby';
 import ActiveSession from './pages/ActiveSession';
 import Notifications from './pages/Notifications';
+import StudyRooms from './pages/StudyRooms';
+import CreateRoom from './pages/CreateRoom';
+import RoomLobby from './pages/RoomLobby';
+import ActiveRoom from './pages/ActiveRoom';
 
 function RequireAuth({ children }) {
     const { user, loading } = useAuth();
@@ -26,6 +30,7 @@ export default function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Landing />} />
+                    <Route path="/app" element={<RequireAuth><Navigate to="/app/home" replace /></RequireAuth>} />
                     <Route path="/app/home" element={<RequireAuth><Home /></RequireAuth>} />
                     <Route path="/app/find" element={<RequireAuth><Find /></RequireAuth>} />
                     <Route path="/app/partner/:id" element={<RequireAuth><BuddyProfile /></RequireAuth>} />
@@ -34,10 +39,15 @@ export default function App() {
                     <Route path="/app/profile" element={<RequireAuth><OwnProfile /></RequireAuth>} />
                     <Route path="/app/requests" element={<RequireAuth><Requests /></RequireAuth>} />
                     <Route path="/app/buddies" element={<RequireAuth><Buddies /></RequireAuth>} />
+                    <Route path="/app/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
                     <Route path="/app/session/create" element={<RequireAuth><CreateSession /></RequireAuth>} />
                     <Route path="/app/session/:id/lobby" element={<RequireAuth><SessionLobby /></RequireAuth>} />
                     <Route path="/app/session/:id/active" element={<RequireAuth><ActiveSession /></RequireAuth>} />
-                    <Route path="/app/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
+                    {/* Study Rooms */}
+                    <Route path="/app/rooms" element={<RequireAuth><StudyRooms /></RequireAuth>} />
+                    <Route path="/app/rooms/create" element={<RequireAuth><CreateRoom /></RequireAuth>} />
+                    <Route path="/app/rooms/:id/lobby" element={<RequireAuth><RoomLobby /></RequireAuth>} />
+                    <Route path="/app/rooms/:id/session" element={<RequireAuth><ActiveRoom /></RequireAuth>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>

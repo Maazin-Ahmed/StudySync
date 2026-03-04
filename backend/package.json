@@ -1,18 +1,22 @@
 {
   "name": "studysync-backend",
   "version": "1.0.0",
-  "description": "StudySync Backend API",
+  "description": "StudySync Production API",
   "main": "src/server.js",
   "scripts": {
-    "start": "node src/server.js",
+    "start": "NODE_ENV=production node src/server.js",
     "dev": "nodemon src/server.js",
-    "setup-db": "node src/db/setup.js"
+    "setup-db": "node src/db/setup.js",
+    "seed-dev": "node src/db/dev-seed.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.4.1",
     "express": "^4.18.3",
+    "express-rate-limit": "^7.5.1",
+    "express-validator": "^7.3.1",
+    "helmet": "^7.2.0",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.11.3",
     "socket.io": "^4.7.4",
