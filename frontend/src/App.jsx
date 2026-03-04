@@ -16,7 +16,9 @@ import Notifications from './pages/Notifications';
 
 function RequireAuth({ children }) {
     const { user, loading } = useAuth();
-    if (loading) return <div className="loading-full"><div className="spinner" /></div>;
+    if (loading) return (
+        <div className="loading-full"><div className="spinner" /></div>
+    );
     return user ? children : <Navigate to="/" replace />;
 }
 
@@ -26,6 +28,7 @@ export default function App() {
             <BrowserRouter>
                 <Routes>
                     <Route path="/" element={<Landing />} />
+                    <Route path="/app" element={<RequireAuth><Navigate to="/app/home" replace /></RequireAuth>} />
                     <Route path="/app/home" element={<RequireAuth><Home /></RequireAuth>} />
                     <Route path="/app/find" element={<RequireAuth><Find /></RequireAuth>} />
                     <Route path="/app/partner/:id" element={<RequireAuth><BuddyProfile /></RequireAuth>} />
@@ -34,10 +37,10 @@ export default function App() {
                     <Route path="/app/profile" element={<RequireAuth><OwnProfile /></RequireAuth>} />
                     <Route path="/app/requests" element={<RequireAuth><Requests /></RequireAuth>} />
                     <Route path="/app/buddies" element={<RequireAuth><Buddies /></RequireAuth>} />
+                    <Route path="/app/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
                     <Route path="/app/session/create" element={<RequireAuth><CreateSession /></RequireAuth>} />
                     <Route path="/app/session/:id/lobby" element={<RequireAuth><SessionLobby /></RequireAuth>} />
                     <Route path="/app/session/:id/active" element={<RequireAuth><ActiveSession /></RequireAuth>} />
-                    <Route path="/app/notifications" element={<RequireAuth><Notifications /></RequireAuth>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>
