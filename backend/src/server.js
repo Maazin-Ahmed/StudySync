@@ -53,6 +53,8 @@ app.use('/api/buddies', require('./routes/buddies'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/rooms', require('./routes/rooms'));
+
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now(), env: process.env.NODE_ENV || 'development' }));
 
@@ -65,8 +67,9 @@ app.use((err, req, res, next) => {
 // ─── 404 handler ─────────────────────────────────────────────
 app.use((req, res) => res.status(404).json({ error: 'Endpoint not found' }));
 
-// ─── Socket.io — real-time chat ──────────────────────────────
+// ─── Socket.io ──────────────────────────────────────────────
 const onlineUsers = new Map(); // userId → socketId
+const roomSockets = new Map(); // roomId → Set(socketId)
 
 io.on('connection', (socket) => {
     socket.on('join', (userId) => {
@@ -119,6 +122,41 @@ io.on('connection', (socket) => {
         if (senderSocket) io.to(senderSocket).emit('messages_read', { by: socket.userId });
     });
 
+    // ─── Study Room real-time events ──────────────────────────
+    socket.on('room_join', ({ roomId, userId, userName, userAvatar }) => {
+        if (!roomId || !userId) return;
+        socket.join(`room:${roomId}`);
+        if (!roomSockets.has(roomId)) roomSockets.set(roomId, new Set());
+        roomSockets.get(roomId).add(socket.id);
+        socket.to(`room:${roomId}`).emit('room_participant_joined', { userId, userName, userAvatar, joinedAt: new Date() });
+    });
+
+    socket.on('room_leave', ({ roomId, userId }) => {
+        if (!roomId) return;
+        socket.leave(`room:${roomId}`);
+        if (roomSockets.has(roomId)) roomSockets.get(roomId).delete(socket.id);
+        socket.to(`room:${roomId}`).emit('room_participant_left', { userId });
+    });
+
+    socket.on('room_message', async ({ roomId, senderId, senderName, senderAvatar, content }) => {
+        if (!roomId || !content || content.length > 1000) return;
+        const msg = { senderId, senderName, senderAvatar, content, ts: Date.now() };
+        io.to(`room:${roomId}`).emit('room_message', msg);
+    });
+
+    socket.on('room_kick', ({ roomId, targetUserId }) => {
+        const targetSocket = onlineUsers.get(targetUserId);
+        if (targetSocket) io.to(targetSocket).emit('room_kicked', { roomId });
+    });
+
+    socket.on('room_settings_changed', ({ roomId, settings }) => {
+        socket.to(`room:${roomId}`).emit('room_settings_changed', settings);
+    });
+
+    socket.on('room_ended', ({ roomId }) => {
+        io.to(`room:${roomId}`).emit('room_ended', { roomId });
+    });
+
     socket.on('disconnect', () => {
         if (socket.userId) {
             onlineUsers.delete(socket.userId);
@@ -131,5 +169,6 @@ const PORT = process.env.PORT || 4000;
 server.listen(PORT, () => {
     console.log(`\n🚀 StudySync API running on http://localhost:${PORT}`);
     console.log(`   Security: helmet ✓  rate-limit ✓  CORS → ${CLIENT_URL}`);
-    console.log(`   Socket.io: real-time chat enabled\n`);
+    console.log(`   Routes: auth, users, buddies, messages, sessions, notifications, rooms`);
+    console.log(`   Socket.io: real-time chat + study rooms\n`);
 });

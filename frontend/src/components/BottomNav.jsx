@@ -4,6 +4,7 @@ import './BottomNav.css';
 const TABS = [
     { to: '/app/home', icon: '🏠', label: 'Home' },
     { to: '/app/find', icon: '🔍', label: 'Find' },
+    { to: '/app/rooms', icon: '🏛️', label: 'Rooms' },
     { to: '/app/chats', icon: '💬', label: 'Chats' },
     { to: '/app/profile', icon: '👤', label: 'Profile' },
 ];

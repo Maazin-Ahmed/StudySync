@@ -13,12 +13,14 @@ import CreateSession from './pages/CreateSession';
 import SessionLobby from './pages/SessionLobby';
 import ActiveSession from './pages/ActiveSession';
 import Notifications from './pages/Notifications';
+import StudyRooms from './pages/StudyRooms';
+import CreateRoom from './pages/CreateRoom';
+import RoomLobby from './pages/RoomLobby';
+import ActiveRoom from './pages/ActiveRoom';
 
 function RequireAuth({ children }) {
     const { user, loading } = useAuth();
-    if (loading) return (
-        <div className="loading-full"><div className="spinner" /></div>
-    );
+    if (loading) return <div className="loading-full"><div className="spinner" /></div>;
     return user ? children : <Navigate to="/" replace />;
 }
 
@@ -41,6 +43,11 @@ export default function App() {
                     <Route path="/app/session/create" element={<RequireAuth><CreateSession /></RequireAuth>} />
                     <Route path="/app/session/:id/lobby" element={<RequireAuth><SessionLobby /></RequireAuth>} />
                     <Route path="/app/session/:id/active" element={<RequireAuth><ActiveSession /></RequireAuth>} />
+                    {/* Study Rooms */}
+                    <Route path="/app/rooms" element={<RequireAuth><StudyRooms /></RequireAuth>} />
+                    <Route path="/app/rooms/create" element={<RequireAuth><CreateRoom /></RequireAuth>} />
+                    <Route path="/app/rooms/:id/lobby" element={<RequireAuth><RoomLobby /></RequireAuth>} />
+                    <Route path="/app/rooms/:id/session" element={<RequireAuth><ActiveRoom /></RequireAuth>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>

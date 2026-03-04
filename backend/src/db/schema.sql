@@ -166,3 +166,106 @@ CREATE TABLE IF NOT EXISTS profile_views (
 );
 
 CREATE INDEX IF NOT EXISTS pv_viewed_idx ON profile_views(viewed_id, created_at);
+
+-- ═══════════════════════════════════════════════════════════════
+-- STUDY ROOMS
+-- ═══════════════════════════════════════════════════════════════
+
+CREATE TYPE room_permission AS ENUM ('open','link','request','private');
+CREATE TYPE room_status     AS ENUM ('lobby','active','ended','cancelled');
+CREATE TYPE participant_role AS ENUM ('host','co_host','participant');
+
+CREATE TABLE IF NOT EXISTS study_rooms (
+  id              UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  host_id         UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  name            TEXT NOT NULL CHECK (char_length(name) BETWEEN 3 AND 100),
+  subject         TEXT NOT NULL DEFAULT '' CHECK (char_length(subject) <= 100),
+  topic           TEXT NOT NULL DEFAULT '' CHECK (char_length(topic) <= 200),
+  mode            TEXT NOT NULL DEFAULT 'silent' CHECK (mode IN ('silent','discussion','doubt')),
+  permission      room_permission NOT NULL DEFAULT 'open',
+  status          room_status NOT NULL DEFAULT 'lobby',
+  capacity        INT CHECK (capacity IS NULL OR (capacity >= 2 AND capacity <= 200)),
+  duration_hrs    DECIMAL(4,2) NOT NULL DEFAULT 2.00 CHECK (duration_hrs > 0 AND duration_hrs <= 12),
+  scheduled_at    TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  started_at      TIMESTAMPTZ,
+  ended_at        TIMESTAMPTZ,
+  -- link-access settings
+  link_token      TEXT UNIQUE,
+  link_expires_at TIMESTAMPTZ,
+  link_max_uses   INT,
+  link_uses       INT NOT NULL DEFAULT 0,
+  -- request settings
+  auto_approve_buddies    BOOLEAN NOT NULL DEFAULT FALSE,
+  auto_approve_min_rating DECIMAL(3,2),
+  require_join_message    BOOLEAN NOT NULL DEFAULT FALSE,
+  -- moderation
+  is_locked       BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS room_host_idx        ON study_rooms(host_id);
+CREATE INDEX IF NOT EXISTS room_permission_idx  ON study_rooms(permission, status);
+CREATE INDEX IF NOT EXISTS room_status_idx      ON study_rooms(status) WHERE status IN ('lobby','active');
+CREATE INDEX IF NOT EXISTS room_subject_idx     ON study_rooms(subject);
+CREATE INDEX IF NOT EXISTS room_link_token_idx  ON study_rooms(link_token) WHERE link_token IS NOT NULL;
+
+CREATE OR REPLACE TRIGGER study_rooms_updated_at
+  BEFORE UPDATE ON study_rooms
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+-- Room Participants
+CREATE TABLE IF NOT EXISTS room_participants (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  room_id     UUID NOT NULL REFERENCES study_rooms(id) ON DELETE CASCADE,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role        participant_role NOT NULL DEFAULT 'participant',
+  joined_at   TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  left_at     TIMESTAMPTZ,
+  is_active   BOOLEAN NOT NULL DEFAULT TRUE,
+  UNIQUE(room_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS rp_room_idx    ON room_participants(room_id, is_active);
+CREATE INDEX IF NOT EXISTS rp_user_idx    ON room_participants(user_id, is_active);
+
+-- Join Requests (for 'request' permission rooms)
+CREATE TYPE join_req_status AS ENUM ('pending','approved','denied');
+
+CREATE TABLE IF NOT EXISTS room_join_requests (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  room_id     UUID NOT NULL REFERENCES study_rooms(id) ON DELETE CASCADE,
+  user_id     UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message     TEXT NOT NULL DEFAULT '' CHECK (char_length(message) <= 200),
+  status      join_req_status NOT NULL DEFAULT 'pending',
+  reviewed_at TIMESTAMPTZ,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(room_id, user_id)
+);
+
+CREATE INDEX IF NOT EXISTS rjr_room_idx   ON room_join_requests(room_id, status);
+CREATE INDEX IF NOT EXISTS rjr_user_idx   ON room_join_requests(user_id);
+
+-- Room Invitations (for 'private' rooms and mid-session invites)
+CREATE TYPE room_inv_status AS ENUM ('pending','accepted','declined','expired');
+
+CREATE TABLE IF NOT EXISTS room_invitations (
+  id          UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  room_id     UUID NOT NULL REFERENCES study_rooms(id) ON DELETE CASCADE,
+  inviter_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  invitee_id  UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  message     TEXT NOT NULL DEFAULT '' CHECK (char_length(message) <= 300),
+  status      room_inv_status NOT NULL DEFAULT 'pending',
+  expires_at  TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '48 hours'),
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE(room_id, invitee_id),
+  CONSTRAINT no_self_invite CHECK (inviter_id <> invitee_id)
+);
+
+CREATE INDEX IF NOT EXISTS ri_room_idx    ON room_invitations(room_id, status);
+CREATE INDEX IF NOT EXISTS ri_invitee_idx ON room_invitations(invitee_id, status);
+
+CREATE OR REPLACE TRIGGER room_invitations_updated_at
+  BEFORE UPDATE ON room_invitations
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
