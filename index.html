@@ -1,320 +1,808 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudyTogether – Learn with the World</title>
-  <meta name="description" content="Connect with students from around the globe, join study rooms by subject, and learn together in real-time." />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="style.css" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>StudySync – Smart Study Buddy Platform</title>
+    <meta name="description"
+        content="Find study partners, coordinate sessions, and stay accountable. Never study alone again." />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-  <!-- ===== LANDING PAGE ===== -->
-  <div id="page-landing" class="page active">
-    <nav class="nav">
-      <div class="nav-logo">
-        <span class="logo-icon">🌍</span>
-        <span class="logo-text">StudyTogether</span>
-      </div>
-      <div class="nav-actions">
-        <button class="btn btn-ghost" id="btn-nav-login">Sign In</button>
-        <button class="btn btn-primary" id="btn-nav-signup">Get Started</button>
-      </div>
-    </nav>
+    <!-- ===== LANDING PAGE ===== -->
+    <div id="page-landing" class="page active">
+        <nav class="nav">
+            <div class="nav-logo" id="logo-landing">
+                <span class="logo-icon">📚</span>
+                <span class="logo-text">StudySync</span>
+            </div>
+            <div class="nav-actions">
+                <button class="btn btn-ghost" id="btn-nav-login">Sign In</button>
+                <button class="btn btn-primary" id="btn-nav-signup">Get Started Free</button>
+            </div>
+        </nav>
 
-    <section class="hero">
-      <div class="hero-badge">✨ 2,400+ students studying right now</div>
-      <h1 class="hero-title">Study Smarter,<br /><span class="gradient-text">Together</span></h1>
-      <p class="hero-subtitle">Join live study rooms with students from every corner of the world. Pick a subject, set a timer, and focus — together.</p>
-      <div class="hero-cta">
-        <button class="btn btn-primary btn-lg" id="btn-hero-start">Start Studying Free</button>
-        <button class="btn btn-outline btn-lg" id="btn-browse-rooms">Browse Rooms</button>
-      </div>
-      <div class="hero-globe-wrap">
-        <div class="globe">
-          <div class="globe-ring"></div>
-          <div class="globe-ring ring2"></div>
-          <div class="globe-ring ring3"></div>
-          <div class="globe-core">🌍</div>
-          <div class="globe-dot dot1" data-flag="🇺🇸" data-label="New York"></div>
-          <div class="globe-dot dot2" data-flag="🇯🇵" data-label="Tokyo"></div>
-          <div class="globe-dot dot3" data-flag="🇮🇳" data-label="Mumbai"></div>
-          <div class="globe-dot dot4" data-flag="🇬🇧" data-label="London"></div>
-          <div class="globe-dot dot5" data-flag="🇧🇷" data-label="São Paulo"></div>
-          <div class="globe-dot dot6" data-flag="🇩🇪" data-label="Berlin"></div>
-        </div>
-      </div>
-      <div class="hero-stats">
-        <div class="stat"><span class="stat-num">150+</span><span class="stat-label">Countries</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-num">500+</span><span class="stat-label">Active Rooms</span></div>
-        <div class="stat-divider"></div>
-        <div class="stat"><span class="stat-num">98k+</span><span class="stat-label">Members</span></div>
-      </div>
-    </section>
+        <section class="hero">
+            <div class="hero-badge">🎯 Your study buddy is one tap away</div>
+            <h1 class="hero-title">Never Study<br /><span class="gradient-text">Alone Again</span></h1>
+            <p class="hero-subtitle">Find compatible study partners, coordinate focused sessions, and stay accountable —
+                nothing more, nothing less.</p>
+            <div class="hero-cta">
+                <button class="btn btn-primary btn-lg" id="btn-hero-start">Find My Study Buddy</button>
+                <button class="btn btn-outline btn-lg" id="btn-hero-learn">How It Works</button>
+            </div>
+            <div class="hero-visual">
+                <div class="match-preview-card">
+                    <div class="mp-header">
+                        <div class="mp-avatar">👩‍💻</div>
+                        <div class="mp-info">
+                            <div class="mp-name">Anjali Reddy</div>
+                            <div class="mp-sub">DSA · Placement Prep</div>
+                        </div>
+                        <div class="mp-match">89%<span>match</span></div>
+                    </div>
+                    <div class="mp-tags">
+                        <span class="tag">Discussion</span>
+                        <span class="tag">Evenings</span>
+                        <span class="tag">⭐ 4.9</span>
+                    </div>
+                    <div class="mp-actions">
+                        <button class="btn btn-primary btn-sm">Send Request</button>
+                        <button class="btn btn-ghost btn-sm">View Profile</button>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-stats">
+                <div class="stat"><span class="stat-num">50k+</span><span class="stat-label">Students</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">200k+</span><span class="stat-label">Sessions</span></div>
+                <div class="stat-divider"></div>
+                <div class="stat"><span class="stat-num">4.8★</span><span class="stat-label">Avg Rating</span></div>
+            </div>
+        </section>
 
-    <section class="features">
-      <h2 class="section-title">Everything you need to <span class="gradient-text">stay focused</span></h2>
-      <div class="feature-grid">
-        <div class="feature-card">
-          <div class="feature-icon">⏱️</div>
-          <h3>Pomodoro Timer</h3>
-          <p>Sync focus sessions with your room. Study 25 min, break 5 — together.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🗺️</div>
-          <h3>Global Rooms</h3>
-          <p>Find rooms by subject, language, or region. Meet your study tribe.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">💬</div>
-          <h3>Live Chat</h3>
-          <p>Ask questions and share resources with everyone in the room.</p>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🎵</div>
-          <h3>Focus Music</h3>
-          <p>Lo-fi beats and ambient sounds to keep you in the zone.</p>
-        </div>
-      </div>
-    </section>
-  </div>
-
-  <!-- ===== JOIN / SIGNUP MODAL ===== -->
-  <div id="modal-join" class="modal-overlay hidden">
-    <div class="modal-box">
-      <button class="modal-close" id="btn-modal-close">✕</button>
-      <div class="modal-logo">🌍</div>
-      <h2 class="modal-title">Join StudyTogether</h2>
-      <p class="modal-sub">Create your free profile below</p>
-      <div class="form-group">
-        <label>Display Name</label>
-        <input type="text" id="input-name" placeholder="e.g. Maazin Ahmed" maxlength="30" />
-      </div>
-      <div class="form-group">
-        <label>Your Region / Country</label>
-        <select id="input-region">
-          <option value="">— Select your region —</option>
-          <option value="🇺🇸 North America">🇺🇸 North America</option>
-          <option value="🇬🇧 Europe">🇬🇧 Europe</option>
-          <option value="🇮🇳 South Asia">🇮🇳 South Asia</option>
-          <option value="🇯🇵 East Asia">🇯🇵 East Asia</option>
-          <option value="🇧🇷 Latin America">🇧🇷 Latin America</option>
-          <option value="🇳🇬 Africa">🇳🇬 Africa</option>
-          <option value="🇦🇺 Oceania">🇦🇺 Oceania</option>
-          <option value="🌍 Other">🌍 Other</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Primary Study Subject</label>
-        <select id="input-subject">
-          <option value="">— Choose a subject —</option>
-          <option value="Mathematics">📐 Mathematics</option>
-          <option value="Computer Science">💻 Computer Science</option>
-          <option value="Physics">⚛️ Physics</option>
-          <option value="Chemistry">🧪 Chemistry</option>
-          <option value="Biology">🧬 Biology</option>
-          <option value="Literature">📚 Literature</option>
-          <option value="History">🏛️ History</option>
-          <option value="Languages">🗣️ Languages</option>
-          <option value="Business">💼 Business</option>
-          <option value="Art & Design">🎨 Art & Design</option>
-          <option value="Music">🎵 Music</option>
-          <option value="Other">🌟 Other</option>
-        </select>
-      </div>
-      <button class="btn btn-primary btn-block" id="btn-create-profile">Enter StudyTogether →</button>
+        <section class="features">
+            <h2 class="section-title">Quiet. Focused. <span class="gradient-text">Effective.</span></h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3>Smart Matching</h3>
+                    <p>Matched by subject, skill level, study goal, and availability. Not just random connections.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">💬</div>
+                    <h3>Focused Chat</h3>
+                    <p>Coordinate sessions with smart templates. No feeds, no distractions — just planning.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⏱️</div>
+                    <h3>Study Sessions</h3>
+                    <p>Pomodoro-synced co-study rooms with accountability nudges and session tracking.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🔥</div>
+                    <h3>Accountability</h3>
+                    <p>Streaks, session history, and partner ratings — support without pressure.</p>
+                </div>
+            </div>
+        </section>
     </div>
-  </div>
 
-  <!-- ===== ROOMS PAGE ===== -->
-  <div id="page-rooms" class="page hidden">
-    <nav class="nav">
-      <div class="nav-logo">
-        <span class="logo-icon">🌍</span>
-        <span class="logo-text">StudyTogether</span>
-      </div>
-      <div class="nav-center">
-        <input type="text" id="room-search" class="search-input" placeholder="🔍 Search rooms, subjects..." />
-      </div>
-      <div class="nav-actions">
-        <button class="btn btn-outline btn-sm" id="btn-create-room">+ New Room</button>
-        <div class="user-badge" id="user-badge"></div>
-      </div>
-    </nav>
+    <!-- ===== HOME DASHBOARD ===== -->
+    <div id="page-home" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <div class="app-header-left">
+                    <span class="logo-icon-sm">📚</span>
+                    <span class="app-header-title">StudySync</span>
+                </div>
+                <div class="app-header-right">
+                    <button class="icon-btn" id="btn-notifs"><span class="notif-dot" id="notif-dot"></span>🔔</button>
+                </div>
+            </header>
 
-    <div class="rooms-layout">
-      <!-- Sidebar Filters -->
-      <aside class="sidebar">
-        <div class="sidebar-section">
-          <h4 class="sidebar-title">Subjects</h4>
-          <ul class="filter-list" id="subject-filters">
-            <li class="filter-item active" data-filter="all">All Subjects</li>
-            <li class="filter-item" data-filter="Mathematics">📐 Mathematics</li>
-            <li class="filter-item" data-filter="Computer Science">💻 Computer Science</li>
-            <li class="filter-item" data-filter="Physics">⚛️ Physics</li>
-            <li class="filter-item" data-filter="Chemistry">🧪 Chemistry</li>
-            <li class="filter-item" data-filter="Biology">🧬 Biology</li>
-            <li class="filter-item" data-filter="Literature">📚 Literature</li>
-            <li class="filter-item" data-filter="Languages">🗣️ Languages</li>
-            <li class="filter-item" data-filter="Business">💼 Business</li>
-          </ul>
-        </div>
-        <div class="sidebar-section">
-          <h4 class="sidebar-title">Region</h4>
-          <ul class="filter-list" id="region-filters">
-            <li class="filter-item active" data-rfilter="all">🌍 All Regions</li>
-            <li class="filter-item" data-rfilter="North America">🇺🇸 North America</li>
-            <li class="filter-item" data-rfilter="Europe">🇬🇧 Europe</li>
-            <li class="filter-item" data-rfilter="South Asia">🇮🇳 South Asia</li>
-            <li class="filter-item" data-rfilter="East Asia">🇯🇵 East Asia</li>
-            <li class="filter-item" data-rfilter="Latin America">🇧🇷 Latin America</li>
-          </ul>
-        </div>
-      </aside>
+            <div class="page-content" id="home-content">
+                <div class="home-greeting" id="home-greeting">Hey there! 👋</div>
+                <div class="home-sub" id="home-sub">Ready to study?</div>
 
-      <!-- Main Content -->
-      <main class="rooms-main">
-        <div class="rooms-header">
-          <h2 class="rooms-title">Live Study Rooms <span class="live-badge">LIVE</span></h2>
-          <div class="rooms-sort">
-            <select id="sort-rooms">
-              <option value="popular">Most Popular</option>
-              <option value="new">Newest</option>
-              <option value="small">Fewest Members</option>
-            </select>
-          </div>
+                <div class="home-quick-actions">
+                    <button class="quick-btn" id="btn-quick-find">
+                        <span class="quick-icon">🔍</span>
+                        <span>Find Partner</span>
+                    </button>
+                    <button class="quick-btn" id="btn-quick-session">
+                        <span class="quick-icon">⏱️</span>
+                        <span>Start Session</span>
+                    </button>
+                    <button class="quick-btn" id="btn-quick-requests">
+                        <span class="quick-icon">🤝</span>
+                        <span>Requests <span class="req-badge" id="req-badge-home"></span></span>
+                    </button>
+                </div>
+
+                <div class="section-label">📅 Upcoming Sessions</div>
+                <div id="upcoming-sessions-list">
+                    <div class="empty-state-sm">No sessions scheduled yet.<br><a href="#" class="link"
+                            id="link-find-first">Find a study partner</a> to get started!</div>
+                </div>
+
+                <div class="section-label">📊 This Week</div>
+                <div class="week-stats">
+                    <div class="wstat"><span class="wstat-num" id="wstat-days">0</span><span
+                            class="wstat-lbl">Days</span></div>
+                    <div class="wstat"><span class="wstat-num" id="wstat-hrs">0</span><span
+                            class="wstat-lbl">Hours</span></div>
+                    <div class="wstat"><span class="wstat-num" id="wstat-streak">0🔥</span><span
+                            class="wstat-lbl">Streak</span></div>
+                    <div class="wstat"><span class="wstat-num" id="wstat-partners">0</span><span
+                            class="wstat-lbl">Buddies</span></div>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <button class="bnav-item active" data-page="home" id="bnav-home">
+                    <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+                </button>
+                <button class="bnav-item" data-page="find" id="bnav-find">
+                    <span class="bnav-icon">🔍</span><span class="bnav-label">Find</span>
+                </button>
+                <button class="bnav-item" data-page="chats" id="bnav-chats">
+                    <span class="bnav-icon">💬</span><span class="bnav-label">Chats</span>
+                </button>
+                <button class="bnav-item" data-page="profile" id="bnav-profile">
+                    <span class="bnav-icon">👤</span><span class="bnav-label">Profile</span>
+                </button>
+            </nav>
         </div>
-        <div class="rooms-grid" id="rooms-grid"></div>
-      </main>
     </div>
-  </div>
 
-  <!-- ===== CREATE ROOM MODAL ===== -->
-  <div id="modal-create-room" class="modal-overlay hidden">
-    <div class="modal-box">
-      <button class="modal-close" id="btn-close-create-room">✕</button>
-      <div class="modal-logo">🚀</div>
-      <h2 class="modal-title">Create a Study Room</h2>
-      <div class="form-group">
-        <label>Room Name</label>
-        <input type="text" id="cr-name" placeholder="e.g. Calculus Finals Grind" maxlength="50" />
-      </div>
-      <div class="form-group">
-        <label>Subject</label>
-        <select id="cr-subject">
-          <option value="Mathematics">📐 Mathematics</option>
-          <option value="Computer Science">💻 Computer Science</option>
-          <option value="Physics">⚛️ Physics</option>
-          <option value="Chemistry">🧪 Chemistry</option>
-          <option value="Biology">🧬 Biology</option>
-          <option value="Literature">📚 Literature</option>
-          <option value="History">🏛️ History</option>
-          <option value="Languages">🗣️ Languages</option>
-          <option value="Business">💼 Business</option>
-          <option value="Art & Design">🎨 Art & Design</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Description</label>
-        <input type="text" id="cr-desc" placeholder="What are you studying?" maxlength="80" />
-      </div>
-      <div class="form-group">
-        <label>Focus Session Length</label>
-        <select id="cr-timer">
-          <option value="25">25 min (Classic Pomodoro)</option>
-          <option value="45">45 min (Deep Work)</option>
-          <option value="60">60 min (Marathon)</option>
-          <option value="90">90 min (Ultradian)</option>
-        </select>
-      </div>
-      <button class="btn btn-primary btn-block" id="btn-confirm-create-room">Create Room 🚀</button>
+    <!-- ===== FIND PARTNERS PAGE ===== -->
+    <div id="page-find" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <div class="app-header-left"><span class="page-title">Find Partners</span></div>
+            </header>
+
+            <div class="page-content">
+                <div class="find-filters">
+                    <div class="form-group">
+                        <label>What are you studying?</label>
+                        <select id="filter-subject">
+                            <option value="">All Subjects</option>
+                            <option value="Data Structures & Algorithms">💻 Data Structures & Algorithms</option>
+                            <option value="Mathematics">📐 Mathematics</option>
+                            <option value="Physics">⚛️ Physics</option>
+                            <option value="Chemistry">🧪 Chemistry</option>
+                            <option value="Biology">🧬 Biology</option>
+                            <option value="Operating Systems">🖥️ Operating Systems</option>
+                            <option value="Computer Networks">🌐 Computer Networks</option>
+                            <option value="Machine Learning">🤖 Machine Learning</option>
+                            <option value="GATE Prep">⚙️ GATE Prep</option>
+                            <option value="CAT Prep">📊 CAT Prep</option>
+                            <option value="UPSC">🏛️ UPSC</option>
+                            <option value="JEE / NEET">🔬 JEE / NEET</option>
+                            <option value="English / IELTS">🗣️ English / IELTS</option>
+                        </select>
+                    </div>
+                    <div class="filter-row">
+                        <div class="form-group half">
+                            <label>When?</label>
+                            <select id="filter-when">
+                                <option value="anytime">Anytime</option>
+                                <option value="now">Now</option>
+                                <option value="today">Today</option>
+                                <option value="week">This Week</option>
+                            </select>
+                        </div>
+                        <div class="form-group half">
+                            <label>Mode?</label>
+                            <select id="filter-mode">
+                                <option value="any">Any Mode</option>
+                                <option value="silent">Silent Co-study</option>
+                                <option value="discussion">Discussion</option>
+                                <option value="doubt">Doubt Clearing</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-primary btn-block" id="btn-find-partners">Find Partners</button>
+                </div>
+
+                <div class="section-label" id="results-label" style="display:none"></div>
+                <div id="partners-results"></div>
+            </div>
+
+            <nav class="bottom-nav">
+                <button class="bnav-item" data-page="home">
+                    <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+                </button>
+                <button class="bnav-item active" data-page="find">
+                    <span class="bnav-icon">🔍</span><span class="bnav-label">Find</span>
+                </button>
+                <button class="bnav-item" data-page="chats">
+                    <span class="bnav-icon">💬</span><span class="bnav-label">Chats</span>
+                </button>
+                <button class="bnav-item" data-page="profile">
+                    <span class="bnav-icon">👤</span><span class="bnav-label">Profile</span>
+                </button>
+            </nav>
+        </div>
     </div>
-  </div>
 
-  <!-- ===== STUDY ROOM PAGE ===== -->
-  <div id="page-room" class="page hidden">
-    <div class="room-layout">
-      <!-- Left: Timer + Controls -->
-      <div class="room-left">
-        <div class="room-header">
-          <button class="btn btn-ghost btn-sm back-btn" id="btn-back-rooms">← Rooms</button>
-          <div class="room-subject-tag" id="room-subject-tag"></div>
+    <!-- ===== BUDDY PROFILE VIEW ===== -->
+    <div id="page-buddy-profile" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-from-buddy">← Back</button>
+                <div class="app-header-left"><span class="page-title" id="buddy-profile-title">Profile</span></div>
+            </header>
+            <div class="page-content" id="buddy-profile-content"></div>
         </div>
-        <div class="room-info">
-          <h2 class="room-name" id="room-name-display"></h2>
-          <p class="room-desc" id="room-desc-display"></p>
-        </div>
-        <div class="timer-card">
-          <div class="timer-phase" id="timer-phase">Focus Time</div>
-          <div class="timer-display" id="timer-display">25:00</div>
-          <div class="timer-progress">
-            <svg class="progress-ring" viewBox="0 0 200 200">
-              <circle class="ring-bg" cx="100" cy="100" r="90" />
-              <circle class="ring-fill" id="ring-fill" cx="100" cy="100" r="90"
-                stroke-dasharray="565.49"
-                stroke-dashoffset="0" />
-            </svg>
-          </div>
-          <div class="timer-controls">
-            <button class="btn btn-primary btn-lg" id="btn-timer-toggle">▶ Start</button>
-            <button class="btn btn-ghost btn-sm" id="btn-timer-reset">Reset</button>
-          </div>
-          <div class="session-counter">
-            <span id="session-count">0</span> sessions completed today
-          </div>
-        </div>
-
-        <div class="music-panel">
-          <div class="music-header">
-            <span>🎵 Focus Sound</span>
-            <label class="toggle">
-              <input type="checkbox" id="music-toggle" />
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="music-options" id="music-options">
-            <button class="music-btn active" data-sound="lofi">Lo-fi Beats</button>
-            <button class="music-btn" data-sound="rain">Rain</button>
-            <button class="music-btn" data-sound="cafe">Café</button>
-            <button class="music-btn" data-sound="whitenoise">White Noise</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Middle: Participants -->
-      <div class="room-middle">
-        <div class="participants-header">
-          <h3>Participants <span class="count-badge" id="participant-count">0</span></h3>
-          <div class="study-status-bar">
-            <div class="status-indicator active-indicator"></div>
-            <span id="active-label">0 focusing</span>
-          </div>
-        </div>
-        <div class="participants-list" id="participants-list"></div>
-
-        <div class="task-panel">
-          <h4>📋 My Task</h4>
-          <input type="text" id="my-task" class="task-input" placeholder="What are you working on?" />
-        </div>
-      </div>
-
-      <!-- Right: Chat -->
-      <div class="room-right">
-        <div class="chat-header">
-          <h3>💬 Room Chat</h3>
-        </div>
-        <div class="chat-messages" id="chat-messages"></div>
-        <div class="chat-input-area">
-          <input type="text" id="chat-input" class="chat-input" placeholder="Type a message..." maxlength="200" />
-          <button class="btn btn-primary btn-sm" id="btn-send-chat">Send</button>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <script src="app.js"></script>
+    <!-- ===== CHAT LIST PAGE ===== -->
+    <div id="page-chats" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <div class="app-header-left"><span class="page-title">Chats</span></div>
+                <div class="app-header-right">
+                    <button class="text-btn" id="btn-go-buddies">My Buddies</button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div id="chat-list-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">💬</div>
+                        <div class="empty-title">No chats yet</div>
+                        <div class="empty-sub">Accept a study request to start chatting</div>
+                        <button class="btn btn-primary btn-sm" id="btn-find-from-chats">Find Partners</button>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="bottom-nav">
+                <button class="bnav-item" data-page="home">
+                    <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+                </button>
+                <button class="bnav-item" data-page="find">
+                    <span class="bnav-icon">🔍</span><span class="bnav-label">Find</span>
+                </button>
+                <button class="bnav-item active" data-page="chats">
+                    <span class="bnav-icon">💬</span><span class="bnav-label">Chats</span>
+                </button>
+                <button class="bnav-item" data-page="profile">
+                    <span class="bnav-icon">👤</span><span class="bnav-label">Profile</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ===== INDIVIDUAL CHAT PAGE ===== -->
+    <div id="page-chat" class="page hidden">
+        <div class="chat-layout">
+            <header class="chat-header-bar">
+                <button class="back-btn" id="btn-back-chat">←</button>
+                <div class="chat-header-info">
+                    <div class="chat-header-avatar" id="chat-partner-avatar"></div>
+                    <div>
+                        <div class="chat-partner-name" id="chat-partner-name"></div>
+                        <div class="chat-partner-status" id="chat-partner-status">Active now</div>
+                    </div>
+                </div>
+                <button class="icon-btn" id="btn-chat-schedule">📅</button>
+            </header>
+
+            <div class="chat-messages-area" id="chat-messages-area"></div>
+
+            <div class="quick-replies-bar" id="quick-replies-bar"></div>
+
+            <div class="chat-input-bar">
+                <button class="icon-btn" id="btn-template-picker">💡</button>
+                <input type="text" id="chat-msg-input" class="chat-text-input" placeholder="Type a message..."
+                    maxlength="500" />
+                <button class="btn btn-primary btn-sm" id="btn-send-msg">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== OWN PROFILE PAGE ===== -->
+    <div id="page-profile" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <div class="app-header-left"><span class="page-title">Profile</span></div>
+                <div class="app-header-right">
+                    <button class="text-btn" id="btn-edit-profile">Edit</button>
+                </div>
+            </header>
+
+            <div class="page-content" id="own-profile-content">
+            </div>
+
+            <nav class="bottom-nav">
+                <button class="bnav-item" data-page="home">
+                    <span class="bnav-icon">🏠</span><span class="bnav-label">Home</span>
+                </button>
+                <button class="bnav-item" data-page="find">
+                    <span class="bnav-icon">🔍</span><span class="bnav-label">Find</span>
+                </button>
+                <button class="bnav-item" data-page="chats">
+                    <span class="bnav-icon">💬</span><span class="bnav-label">Chats</span>
+                </button>
+                <button class="bnav-item active" data-page="profile">
+                    <span class="bnav-icon">👤</span><span class="bnav-label">Profile</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- ===== REQUESTS PAGE ===== -->
+    <div id="page-requests" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-requests">← Home</button>
+                <div class="app-header-left"><span class="page-title">Study Requests</span></div>
+            </header>
+            <div class="page-content">
+                <div class="tab-bar">
+                    <button class="tab-btn active" id="tab-received">Received</button>
+                    <button class="tab-btn" id="tab-sent">Sent</button>
+                </div>
+                <div id="requests-received-list"></div>
+                <div id="requests-sent-list" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MY BUDDIES PAGE ===== -->
+    <div id="page-buddies" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-buddies">← Chats</button>
+                <div class="app-header-left"><span class="page-title">My Study Buddies</span></div>
+            </header>
+            <div class="page-content" id="buddies-list-content">
+                <div class="empty-state">
+                    <div class="empty-icon">🤝</div>
+                    <div class="empty-title">No buddies yet</div>
+                    <div class="empty-sub">Find study partners and accept requests to build your buddy list</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SESSION CREATE PAGE ===== -->
+    <div id="page-session-create" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-session-create">← Back</button>
+                <div class="app-header-left"><span class="page-title">New Session</span></div>
+            </header>
+            <div class="page-content">
+                <div class="form-group">
+                    <label>Study partner</label>
+                    <div id="session-partner-select" class="partner-select-area">
+                        <div class="partner-chips" id="partner-chips"></div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Subject</label>
+                    <select id="session-subject">
+                        <option value="">Select subject</option>
+                        <option>Data Structures & Algorithms</option>
+                        <option>Mathematics</option>
+                        <option>Physics</option>
+                        <option>Operating Systems</option>
+                        <option>Machine Learning</option>
+                        <option>CAT Prep</option>
+                        <option>GATE Prep</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Specific topic (optional)</label>
+                    <input type="text" id="session-topic" placeholder="e.g. Trees and Graphs" />
+                </div>
+                <div class="form-group">
+                    <label>Study mode</label>
+                    <div class="radio-group" id="session-mode-group">
+                        <label class="radio-opt"><input type="radio" name="smode" value="silent" checked /> Silent
+                            Co-study</label>
+                        <label class="radio-opt"><input type="radio" name="smode" value="discussion" />
+                            Discussion</label>
+                        <label class="radio-opt"><input type="radio" name="smode" value="doubt" /> Doubt
+                            Clearing</label>
+                    </div>
+                </div>
+                <div class="filter-row">
+                    <div class="form-group half">
+                        <label>When</label>
+                        <select id="session-when">
+                            <option value="now">Now</option>
+                            <option value="today_eve" selected>Today Evening</option>
+                            <option value="tomorrow">Tomorrow</option>
+                        </select>
+                    </div>
+                    <div class="form-group half">
+                        <label>Duration</label>
+                        <select id="session-duration">
+                            <option value="60">1 hour</option>
+                            <option value="90">1.5 hours</option>
+                            <option value="120" selected>2 hours</option>
+                            <option value="180">3 hours</option>
+                        </select>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-block" id="btn-create-session">Create Session 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== SESSION LOBBY ===== -->
+    <div id="page-session-lobby" class="page hidden">
+        <div class="lobby-layout">
+            <h2 class="lobby-title">Session Starting Soon</h2>
+            <div class="lobby-session-info" id="lobby-info"></div>
+            <div class="lobby-timer" id="lobby-countdown">Ready to start?</div>
+
+            <div class="lobby-readycheck">
+                <div class="ready-item"><span>✅</span> <span id="lobby-you-name">You</span> (Ready)</div>
+                <div class="ready-item" id="lobby-partner-ready"><span>⏳</span> <span
+                        id="lobby-partner-name">Partner</span> (Joining...)</div>
+            </div>
+
+            <div class="lobby-setup">
+                <div class="setup-row">Camera: <span class="toggle-simple" id="toggle-camera">📷 On</span></div>
+                <div class="setup-row">Mic: <span class="toggle-simple" id="toggle-mic">🎤 On</span></div>
+            </div>
+
+            <button class="btn btn-primary btn-lg" id="btn-join-session" style="width:100%;margin-top:24px">Join
+                Session</button>
+            <button class="btn btn-ghost" id="btn-cancel-session" style="width:100%;margin-top:8px">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ===== ACTIVE SESSION PAGE ===== -->
+    <div id="page-session-active" class="page hidden">
+        <div class="session-layout">
+            <div class="session-partner-bar" id="session-partner-bar"></div>
+
+            <div class="session-timer-wrap">
+                <div class="session-phase" id="session-phase">🎯 Focus Time</div>
+                <div class="session-timer-progress">
+                    <svg class="session-ring" viewBox="0 0 220 220">
+                        <defs>
+                            <linearGradient id="sessionGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#5B8EFF" />
+                                <stop offset="100%" style="stop-color:#42DBC8" />
+                            </linearGradient>
+                        </defs>
+                        <circle class="s-ring-bg" cx="110" cy="110" r="100" />
+                        <circle class="s-ring-fill" id="s-ring-fill" cx="110" cy="110" r="100" stroke-dasharray="628.32"
+                            stroke-dashoffset="0" />
+                    </svg>
+                    <div class="session-timer-overlay">
+                        <div class="session-time" id="session-time-display">25:00</div>
+                        <div class="session-time-label">remaining</div>
+                    </div>
+                </div>
+                <div class="session-count" id="session-pomo-count">0 sessions done</div>
+            </div>
+
+            <div class="session-task-bar">
+                <input type="text" id="session-task-input" class="session-task-input"
+                    placeholder="📋 What are you working on?" />
+            </div>
+
+            <div class="session-controls">
+                <button class="ctrl-btn" id="btn-session-toggle">▶ Start</button>
+                <button class="ctrl-btn ctrl-secondary" id="btn-session-break">☕ Break</button>
+                <button class="ctrl-btn ctrl-danger" id="btn-session-end">✕ End</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== NOTIFICATIONS PAGE ===== -->
+    <div id="page-notifications" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-notifs">← Back</button>
+                <div class="app-header-left"><span class="page-title">Notifications</span></div>
+                <div class="app-header-right">
+                    <button class="text-btn" id="btn-mark-all-read">Mark All Read</button>
+                </div>
+            </header>
+            <div class="page-content" id="notifs-content"></div>
+        </div>
+    </div>
+
+    <!-- ===== SETTINGS PAGE ===== -->
+    <div id="page-settings" class="page hidden">
+        <div class="app-layout">
+            <header class="app-header">
+                <button class="back-btn" id="btn-back-settings">← Profile</button>
+                <div class="app-header-left"><span class="page-title">Settings</span></div>
+            </header>
+            <div class="page-content">
+                <div class="settings-section">
+                    <div class="settings-label">ACCOUNT</div>
+                    <div class="settings-item" id="btn-goto-edit-profile">Edit Profile <span class="chevron">›</span>
+                    </div>
+                    <div class="settings-item" id="btn-logout">Log Out <span class="chevron danger">›</span></div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-label">NOTIFICATIONS</div>
+                    <div class="settings-item">Session reminders <label class="toggle-switch"><input type="checkbox"
+                                id="tog-reminders" checked /><span class="tog-track"></span></label></div>
+                    <div class="settings-item">New messages <label class="toggle-switch"><input type="checkbox"
+                                id="tog-messages" checked /><span class="tog-track"></span></label></div>
+                    <div class="settings-item">Study requests <label class="toggle-switch"><input type="checkbox"
+                                id="tog-requests" checked /><span class="tog-track"></span></label></div>
+                </div>
+                <div class="settings-section">
+                    <div class="settings-label">PRIVACY</div>
+                    <div class="settings-item">Profile visibility<span class="settings-val">Public</span></div>
+                    <div class="settings-item">Who can find me<span class="settings-val">Everyone</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: SIGNUP (multi-step) ===== -->
+    <div id="modal-signup" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button class="modal-close" id="btn-close-signup">✕</button>
+            <div class="step-indicator" id="signup-step-dots"></div>
+
+            <!-- Step 1: Account -->
+            <div class="signup-step" id="step-1">
+                <div class="modal-logo">📚</div>
+                <h2 class="modal-title">Welcome to StudySync</h2>
+                <p class="modal-sub">Never study alone again</p>
+                <div class="form-group">
+                    <label>Your Name</label>
+                    <input type="text" id="signup-name" placeholder="e.g. Priya Sharma" maxlength="30" />
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="text" id="signup-email" placeholder="your@email.com" />
+                </div>
+                <button class="btn btn-primary btn-block" id="btn-step1-next">Continue →</button>
+                <div class="modal-footer-link">Already have an account? <a href="#" id="link-to-login">Sign In</a></div>
+            </div>
+
+            <!-- Step 2: What are you studying? -->
+            <div class="signup-step hidden" id="step-2">
+                <h2 class="modal-title">What are you studying?</h2>
+                <p class="modal-sub">Select up to 3 subjects</p>
+                <div class="subject-chips-grid" id="subject-chips-grid">
+                    <div class="subj-chip" data-val="Data Structures & Algorithms">💻 DSA</div>
+                    <div class="subj-chip" data-val="Mathematics">📐 Maths</div>
+                    <div class="subj-chip" data-val="Physics">⚛️ Physics</div>
+                    <div class="subj-chip" data-val="Chemistry">🧪 Chemistry</div>
+                    <div class="subj-chip" data-val="Biology">🧬 Biology</div>
+                    <div class="subj-chip" data-val="Operating Systems">🖥️ OS</div>
+                    <div class="subj-chip" data-val="Computer Networks">🌐 Networks</div>
+                    <div class="subj-chip" data-val="Machine Learning">🤖 ML / AI</div>
+                    <div class="subj-chip" data-val="GATE Prep">⚙️ GATE</div>
+                    <div class="subj-chip" data-val="CAT Prep">📊 CAT</div>
+                    <div class="subj-chip" data-val="UPSC">🏛️ UPSC</div>
+                    <div class="subj-chip" data-val="JEE / NEET">🔬 JEE/NEET</div>
+                    <div class="subj-chip" data-val="English / IELTS">🗣️ English</div>
+                    <div class="subj-chip" data-val="Business">💼 Business</div>
+                </div>
+                <div class="step-nav">
+                    <button class="btn btn-ghost" id="btn-step2-back">← Back</button>
+                    <button class="btn btn-primary" id="btn-step2-next">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 3: Study Goal -->
+            <div class="signup-step hidden" id="step-3">
+                <h2 class="modal-title">What's your goal?</h2>
+                <div class="radio-stack" id="goal-options">
+                    <label class="radio-card"><input type="radio" name="goal" value="Placement Preparation" /><span>🎯
+                            Placement Preparation</span></label>
+                    <label class="radio-card"><input type="radio" name="goal" value="Exam Preparation" /><span>📝 Exam
+                            Preparation</span></label>
+                    <label class="radio-card"><input type="radio" name="goal" value="College Studies" /><span>🎓 College
+                            Studies</span></label>
+                    <label class="radio-card"><input type="radio" name="goal" value="Online Course" /><span>💻 Online
+                            Course</span></label>
+                    <label class="radio-card"><input type="radio" name="goal" value="Just Learning" /><span>📚 Just
+                            Learning</span></label>
+                </div>
+                <div class="step-nav">
+                    <button class="btn btn-ghost" id="btn-step3-back">← Back</button>
+                    <button class="btn btn-primary" id="btn-step3-next">Continue →</button>
+                </div>
+            </div>
+
+            <!-- Step 4: Availability & Mode -->
+            <div class="signup-step hidden" id="step-4">
+                <h2 class="modal-title">When do you study?</h2>
+                <div class="checkbox-stack" id="avail-options">
+                    <label class="check-card"><input type="checkbox" value="Morning" /> ☀️ Morning (6 AM–12 PM)</label>
+                    <label class="check-card"><input type="checkbox" value="Afternoon" /> 🌤️ Afternoon (12–5
+                        PM)</label>
+                    <label class="check-card"><input type="checkbox" value="Evening" /> 🌆 Evening (5–9 PM)</label>
+                    <label class="check-card"><input type="checkbox" value="Night" /> 🌙 Night (9 PM–12 AM)</label>
+                </div>
+                <div class="form-group" style="margin-top:16px">
+                    <label>Preferred study mode</label>
+                    <div class="checkbox-stack">
+                        <label class="check-card"><input type="checkbox" name="mode" value="silent" /> 🤫 Silent
+                            Co-study</label>
+                        <label class="check-card"><input type="checkbox" name="mode" value="discussion" /> 💬
+                            Discussion</label>
+                        <label class="check-card"><input type="checkbox" name="mode" value="doubt" /> ❓ Doubt
+                            Clearing</label>
+                    </div>
+                </div>
+                <div class="step-nav">
+                    <button class="btn btn-ghost" id="btn-step4-back">← Back</button>
+                    <button class="btn btn-primary" id="btn-step4-next">Start Using →</button>
+                </div>
+            </div>
+
+            <!-- Step 5: Welcome -->
+            <div class="signup-step hidden" id="step-5">
+                <div class="modal-logo" style="font-size:56px">🎉</div>
+                <h2 class="modal-title">You're all set!</h2>
+                <p class="modal-sub">Here's how StudySync works:</p>
+                <div class="welcome-steps">
+                    <div class="welcome-step">1️⃣ Find study partners by subject</div>
+                    <div class="welcome-step">2️⃣ Send study requests</div>
+                    <div class="welcome-step">3️⃣ Coordinate via chat</div>
+                    <div class="welcome-step">4️⃣ Join focused study sessions</div>
+                </div>
+                <button class="btn btn-primary btn-block" id="btn-start-app">Find My First Study Partner 🚀</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: LOGIN ===== -->
+    <div id="modal-login" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button class="modal-close" id="btn-close-login">✕</button>
+            <div class="modal-logo">📚</div>
+            <h2 class="modal-title">Welcome Back</h2>
+            <p class="modal-sub">Sign in to StudySync</p>
+            <div class="form-group">
+                <label>Email</label>
+                <input type="text" id="login-email" placeholder="your@email.com" />
+            </div>
+            <div class="form-group">
+                <label>Password</label>
+                <input type="text" id="login-pw" placeholder="Your password" />
+            </div>
+            <button class="btn btn-primary btn-block" id="btn-do-login">Sign In</button>
+            <div class="modal-footer-link">New here? <a href="#" id="link-to-signup">Create Account</a></div>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: SEND REQUEST ===== -->
+    <div id="modal-send-request" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button class="modal-close" id="btn-close-send-req">✕</button>
+            <h2 class="modal-title">Send Study Request</h2>
+            <p class="modal-sub" id="req-partner-sub">to Partner</p>
+            <div class="form-group">
+                <label>Subject</label>
+                <select id="req-subject">
+                    <option>Data Structures & Algorithms</option>
+                    <option>Mathematics</option>
+                    <option>Physics</option>
+                    <option>Operating Systems</option>
+                    <option>Machine Learning</option>
+                    <option>Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Mode</label>
+                <select id="req-mode">
+                    <option value="silent">Silent Pomodoro</option>
+                    <option value="discussion">Discussion</option>
+                    <option value="doubt">Doubt Clearing</option>
+                </select>
+            </div>
+            <div class="filter-row">
+                <div class="form-group half">
+                    <label>When</label>
+                    <select id="req-when">
+                        <option>Today evening</option>
+                        <option>Tomorrow</option>
+                        <option>This weekend</option>
+                        <option>Flexible</option>
+                    </select>
+                </div>
+                <div class="form-group half">
+                    <label>Duration</label>
+                    <select id="req-duration">
+                        <option>1 hour</option>
+                        <option>2 hours</option>
+                        <option>3 hours</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Message (optional)</label>
+                <textarea id="req-message" placeholder="Hey! I'd love to study together..." rows="3"
+                    maxlength="200"></textarea>
+                <div class="template-pills">
+                    <span class="tpill" data-tpl="intro">👋 Intro</span>
+                    <span class="tpill" data-tpl="doubt">❓ Doubt help</span>
+                    <span class="tpill" data-tpl="regular">🤝 Regular buddy</span>
+                </div>
+            </div>
+            <button class="btn btn-primary btn-block" id="btn-confirm-send-req">Send Request ✉️</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: POST SESSION ===== -->
+    <div id="modal-post-session" class="modal-overlay hidden">
+        <div class="modal-box">
+            <div class="modal-logo">✅</div>
+            <h2 class="modal-title">Session Complete!</h2>
+            <p class="modal-sub" id="post-session-summary">You studied for 2 hours</p>
+            <div class="form-group">
+                <label>How was the session?</label>
+                <div class="star-rating" id="session-rating-stars">
+                    <span data-val="1">⭐</span><span data-val="2">⭐</span><span data-val="3">⭐</span><span
+                        data-val="4">⭐</span><span data-val="5">⭐</span>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>What did you cover? (optional)</label>
+                <input type="text" id="post-session-notes" placeholder="e.g. Linked lists, binary trees..." />
+            </div>
+            <button class="btn btn-primary btn-block" id="btn-submit-post-session">Save & Go Home</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: EDIT PROFILE ===== -->
+    <div id="modal-edit-profile" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button class="modal-close" id="btn-close-edit-profile">✕</button>
+            <h2 class="modal-title">Edit Profile</h2>
+            <div class="form-group">
+                <label>Full Name</label>
+                <input type="text" id="edit-name" placeholder="Your name" />
+            </div>
+            <div class="form-group">
+                <label>Institution</label>
+                <input type="text" id="edit-institution" placeholder="College / School" />
+            </div>
+            <div class="form-group">
+                <label>Education</label>
+                <input type="text" id="edit-education" placeholder="e.g. Final Year, Computer Science" />
+            </div>
+            <div class="form-group">
+                <label>About You (max 150 chars)</label>
+                <textarea id="edit-bio" placeholder="Tell others about your study style..." rows="3"
+                    maxlength="150"></textarea>
+            </div>
+            <button class="btn btn-primary btn-block" id="btn-save-edit-profile">Save Changes</button>
+            <button class="btn btn-ghost btn-block" id="btn-goto-settings">⚙️ Settings</button>
+        </div>
+    </div>
+
+    <!-- ===== MODAL: TEMPLATE PICKER ===== -->
+    <div id="modal-templates" class="modal-overlay hidden">
+        <div class="modal-box">
+            <button class="modal-close" id="btn-close-templates">✕</button>
+            <h2 class="modal-title">Quick Templates</h2>
+            <div class="template-list" id="template-list"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
 </body>
+
 </html>
