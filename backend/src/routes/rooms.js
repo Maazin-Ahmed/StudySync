@@ -18,7 +18,10 @@ function emitToUser(userId, event, data) {
 
 const ok = (req, res, next) => {
     const e = validationResult(req);
-    if (!e.isEmpty()) return res.status(400).json({ error: e.array()[0].msg });
+    if (!e.isEmpty()) {
+        console.error('Validation errors:', JSON.stringify(e.array()));
+        return res.status(400).json({ error: e.array()[0].msg });
+    }
     next();
 };
 
@@ -133,17 +136,18 @@ router.get('/:id', auth, param('id').isUUID(), ok, async (req, res) => {
 router.post('/',
     auth,
     body('name').trim().isLength({ min: 3, max: 100 }).withMessage('Room name must be 3-100 chars'),
-    body('subject').trim().isLength({ max: 100 }),
-    body('mode').isIn(['silent', 'discussion', 'doubt']),
-    body('permission').isIn(['open', 'link', 'request', 'private']),
-    body('duration_hrs').optional().isFloat({ min: 0.5, max: 12 }),
-    body('capacity').optional().isInt({ min: 2, max: 200 }),
+    body('subject').optional({ values: 'falsy' }).trim().isLength({ max: 100 }),
+    body('mode').isIn(['silent', 'discussion', 'doubt']).withMessage('Invalid study mode'),
+    body('permission').isIn(['open', 'link', 'request', 'private']).withMessage('Invalid permission type'),
+    body('duration_hrs').optional().toFloat().isFloat({ min: 0.5, max: 12 }),
+    body('capacity').optional({ nullable: true }).toInt().isInt({ min: 2, max: 200 }),
     ok,
     async (req, res) => {
         try {
             const { name, subject, topic, mode, permission, duration_hrs, capacity,
                 auto_approve_buddies, auto_approve_min_rating, require_join_message,
-                invite_buddies, invite_message, scheduled_at } = req.body;
+                invite_buddies, invite_message, scheduled_at,
+                link_expires_at, link_max_uses } = req.body;
             const hostId = req.user.id;
 
             // Generate link token if link-access room
@@ -153,11 +157,12 @@ router.post('/',
             const r = await pool.query(
                 `INSERT INTO study_rooms
            (host_id,name,subject,topic,mode,permission,duration_hrs,capacity,scheduled_at,
-            link_token,auto_approve_buddies,auto_approve_min_rating,require_join_message)
-         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING *`,
+            link_token,link_expires_at,link_max_uses,auto_approve_buddies,auto_approve_min_rating,require_join_message)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15) RETURNING *`,
                 [hostId, name, subject || '', topic || '', mode, permission,
                     duration_hrs || 2, capacity || null, scheduled_at || new Date().toISOString(),
-                    link_token, !!auto_approve_buddies, auto_approve_min_rating || null, !!require_join_message]
+                    link_token, link_expires_at || null, link_max_uses || null,
+                    !!auto_approve_buddies, auto_approve_min_rating || null, !!require_join_message]
             );
             const room = r.rows[0];
 
@@ -176,9 +181,9 @@ router.post('/',
                             `INSERT INTO room_invitations (room_id,inviter_id,invitee_id,message) VALUES ($1,$2,$3,$4)`,
                             [room.id, hostId, inviteeId, invite_message || '']
                         );
-                        await notify(inviteeId, '🔒', `Private session invite from ${me.rows[0].name}`,
+                        await notify(inviteeId, '🔒', `Invite from ${me.rows[0].name}`,
                             `${me.rows[0].name} invited you to "${name}" — ${subject || 'study session'}`,
-                            'room', 'high', `/app/rooms/${room.id}`);
+                            'system', 'high', `/app/rooms/${room.id}`);
                     } catch (err) { /* skip dup */ }
                 }
             }
@@ -341,7 +346,7 @@ router.post('/:id/request',
             const me = await pool.query('SELECT name FROM users WHERE id=$1', [userId]);
             await notify(room.host_id, '🚪', 'New join request!',
                 `${me.rows[0].name} wants to join "${room.name}"`,
-                'room', 'high', `/app/rooms/${id}/requests`);
+                'system', 'high', `/app/rooms/${id}/requests`);
 
             // Real-time: push to host's socket
             emitToUser(room.host_id, 'room_request_new', {
@@ -400,7 +405,7 @@ router.put('/requests/:reqId/approve', auth, param('reqId').isUUID(), ok, async 
         const roomName = await pool.query('SELECT name FROM study_rooms WHERE id=$1', [room_id]);
         await notify(user_id, '✅', 'Join request approved!',
             `You can now join "${roomName.rows[0]?.name}"`,
-            'room', 'urgent', `/app/rooms/${room_id}/lobby`);
+            'system', 'urgent', `/app/rooms/${room_id}/lobby`);
 
         // Real-time: notify requester
         emitToUser(user_id, 'room_request_approved', {
@@ -456,7 +461,7 @@ router.post('/:id/invite',
                     );
                     await notify(inviteeId, '📨', `${me.rows[0].name} invited you to study`,
                         `Join "${room.rows[0].name}"${room.rows[0].subject ? ' — ' + room.rows[0].subject : ''}`,
-                        'room', 'high', `/app/rooms/${id}`);
+                        'system', 'high', `/app/rooms/${id}`);
                     sent++;
                 } catch (_) { }
             }
@@ -484,7 +489,7 @@ router.put('/invitations/:invId/accept', auth, param('invId').isUUID(), ok, asyn
         const me = await pool.query('SELECT name FROM users WHERE id=$1', [req.user.id]);
         const rm = await pool.query('SELECT name FROM study_rooms WHERE id=$1', [room_id]);
         await notify(inviter_id, '🎉', `${me.rows[0].name} accepted your invitation`,
-            `They joined "${rm.rows[0].name}"`, 'room', 'medium', `/app/rooms/${room_id}`);
+            `They joined "${rm.rows[0].name}"`, 'system', 'medium', `/app/rooms/${room_id}`);
         res.json({ ok: true, room_id });
     } catch (e) { console.error(e); res.status(500).json({ error: 'Failed' }); }
 });
@@ -529,7 +534,7 @@ router.delete('/:id/participants/:uid',
             );
             const rm = await pool.query('SELECT name FROM study_rooms WHERE id=$1', [id]);
             await notify(uid, '⚠️', 'Removed from study room',
-                `You were removed from "${rm.rows[0]?.name}" by the host.`, 'room', 'medium', '/app/rooms');
+                `You were removed from "${rm.rows[0]?.name}" by the host.`, 'system', 'medium', '/app/rooms');
             res.json({ ok: true });
         } catch (e) { res.status(500).json({ error: 'Failed' }); }
     }
@@ -552,7 +557,7 @@ router.put('/:id/cohost/:uid',
             );
             const rm = await pool.query('SELECT name FROM study_rooms WHERE id=$1', [id]);
             await notify(uid, '👑', 'You are now a co-host!',
-                `You can now help manage "${rm.rows[0]?.name}"`, 'room', 'medium', `/app/rooms/${id}`);
+                `You can now help manage "${rm.rows[0]?.name}"`, 'system', 'medium', `/app/rooms/${id}`);
             res.json({ ok: true });
         } catch (e) { res.status(500).json({ error: 'Failed' }); }
     }
