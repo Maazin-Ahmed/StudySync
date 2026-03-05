@@ -65,15 +65,34 @@ export default function CreateRoom() {
     const handleCreate = async () => {
         setCreating(true); setError('');
         try {
-            // Build scheduled_at (now + a tiny offset so it's in the future)
             const payload = {
-                ...form,
-                invite_buddies: selectedBuddies,
-                link_expires_at: form.link_expiry_hrs
-                    ? new Date(Date.now() + form.link_expiry_hrs * 3600 * 1000).toISOString()
-                    : undefined,
-                link_max_uses: form.link_max_uses || undefined,
+                name: form.name,
+                subject: form.subject || undefined,
+                topic: form.topic || undefined,
+                mode: form.mode,
+                permission: form.permission,
+                duration_hrs: form.duration_hrs,
             };
+            // Only include capacity if it's set (not null/unlimited)
+            if (form.capacity) payload.capacity = form.capacity;
+            // Request-to-join settings
+            if (form.permission === 'request') {
+                payload.auto_approve_buddies = form.auto_approve_buddies;
+                payload.require_join_message = form.require_join_message;
+                if (form.auto_approve_min_rating) payload.auto_approve_min_rating = form.auto_approve_min_rating;
+            }
+            // Link settings
+            if (form.permission === 'link') {
+                if (form.link_expiry_hrs) {
+                    payload.link_expires_at = new Date(Date.now() + form.link_expiry_hrs * 3600 * 1000).toISOString();
+                }
+                if (form.link_max_uses) payload.link_max_uses = form.link_max_uses;
+            }
+            // Private room invites
+            if (form.permission === 'private' && selectedBuddies.length > 0) {
+                payload.invite_buddies = selectedBuddies;
+                payload.invite_message = form.invite_message || '';
+            }
             const r = await API.post('/rooms', payload);
             setResult(r.data);
         } catch (e) { setError(e.response?.data?.error || 'Failed to create room'); }
