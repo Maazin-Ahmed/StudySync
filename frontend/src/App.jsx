@@ -15,8 +15,10 @@ import ActiveSession from './pages/ActiveSession';
 import Notifications from './pages/Notifications';
 import StudyRooms from './pages/StudyRooms';
 import CreateRoom from './pages/CreateRoom';
+import JoinViaLink from './pages/JoinViaLink';
 import RoomLobby from './pages/RoomLobby';
 import ActiveRoom from './pages/ActiveRoom';
+import RoomRequests from './pages/RoomRequests';
 
 function RequireAuth({ children }) {
     const { user, loading } = useAuth();
@@ -46,8 +48,11 @@ export default function App() {
                     {/* Study Rooms */}
                     <Route path="/app/rooms" element={<RequireAuth><StudyRooms /></RequireAuth>} />
                     <Route path="/app/rooms/create" element={<RequireAuth><CreateRoom /></RequireAuth>} />
+                    {/* JoinViaLink MUST be before :id routes to avoid shadowing */}
+                    <Route path="/app/rooms/join/:token" element={<RequireAuth><JoinViaLink /></RequireAuth>} />
                     <Route path="/app/rooms/:id/lobby" element={<RequireAuth><RoomLobby /></RequireAuth>} />
                     <Route path="/app/rooms/:id/session" element={<RequireAuth><ActiveRoom /></RequireAuth>} />
+                    <Route path="/app/rooms/:id/requests" element={<RequireAuth><RoomRequests /></RequireAuth>} />
                     <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
             </BrowserRouter>

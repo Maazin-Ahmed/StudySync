@@ -25,10 +25,13 @@ export default function RoomLobby() {
     const [requests, setRequests] = useState([]);
     const [showRequests, setShowRequests] = useState(false);
     const [showInvite, setShowInvite] = useState(false);
+    const [showSettings, setShowSettings] = useState(false);
     const [buddies, setBuddies] = useState([]);
     const [selectedInvite, setSelectedInvite] = useState([]);
     const [inviteMsg, setInviteMsg] = useState('');
     const [starting, setStarting] = useState(false);
+    const [locking, setLocking] = useState(false);
+    const [pendingCount, setPendingCount] = useState(0);
     const msgEndRef = useRef(null);
 
     const isHost = room?.my_role === 'host';
@@ -46,25 +49,34 @@ export default function RoomLobby() {
 
     const loadRequests = async () => {
         if (!canManage) return;
-        try { const r = await API.get(`/rooms/${id}/requests`); setRequests(r.data); } catch { }
+        try {
+            const r = await API.get(`/rooms/${id}/requests`);
+            setRequests(r.data);
+            setPendingCount(r.data.length);
+        } catch { }
     };
 
     useEffect(() => {
         loadRoom();
-        socketRef.current = io(API_URL);
-        socketRef.current.emit('join', user.id);
-        socketRef.current.emit('room_join', { roomId: id, userId: user.id, userName: user.name, userAvatar: user.avatar });
-        socketRef.current.on('room_participant_joined', (p) => {
+        const socket = io(API_URL);
+        socket.emit('join', user.id);
+        socket.emit('room_join', { roomId: id, userId: user.id, userName: user.name, userAvatar: user.avatar });
+        socket.on('room_participant_joined', (p) => {
             setRoom(prev => prev ? { ...prev, participants: [...(prev.participants || []), p], participant_count: (prev.participant_count || 0) + 1 } : prev);
         });
-        socketRef.current.on('room_participant_left', ({ userId }) => {
+        socket.on('room_participant_left', ({ userId }) => {
             setRoom(prev => prev ? { ...prev, participants: (prev.participants || []).filter(p => p.id !== userId), participant_count: Math.max(0, (prev.participant_count || 1) - 1) } : prev);
         });
-        socketRef.current.on('room_message', (msg) => setMessages(prev => [...prev, msg]));
-        socketRef.current.on('room_ended', () => { alert('The host ended this room.'); navigate('/app/rooms'); });
-        socketRef.current.on('room_kicked', () => { alert('You were removed from this room.'); navigate('/app/rooms'); });
-        socketRef.current.on('room_settings_changed', () => loadRoom());
-        return () => { socketRef.current?.emit('room_leave', { roomId: id, userId: user.id }); socketRef.current?.disconnect(); };
+        socket.on('room_message', (msg) => setMessages(prev => [...prev, msg]));
+        socket.on('room_ended', () => { alert('The host ended this room.'); navigate('/app/rooms'); });
+        socket.on('room_kicked', () => { alert('You were removed from this room.'); navigate('/app/rooms'); });
+        socket.on('room_settings_changed', () => loadRoom());
+        // Real-time join request badge for host
+        socket.on('room_request_new', ({ roomId }) => {
+            if (roomId === id) setPendingCount(c => c + 1);
+        });
+        socketRef.current = socket;
+        return () => { socket.emit('room_leave', { roomId: id, userId: user.id }); socket.disconnect(); };
     }, [id]);
 
     useEffect(() => { if (canManage) loadRequests(); }, [canManage]);
@@ -86,6 +98,26 @@ export default function RoomLobby() {
         setStarting(false);
     };
 
+    const toggleLock = async () => {
+        if (!room) return;
+        setLocking(true);
+        try {
+            await API.put(`/rooms/${id}`, { is_locked: !room.is_locked });
+            setRoom(r => ({ ...r, is_locked: !r.is_locked }));
+            socketRef.current?.emit('room_settings_changed', { roomId: id, settings: { is_locked: !room.is_locked } });
+        } catch { }
+        setLocking(false);
+    };
+
+    const changePermission = async (permission) => {
+        try {
+            await API.put(`/rooms/${id}`, { permission });
+            setRoom(r => ({ ...r, permission }));
+            socketRef.current?.emit('room_settings_changed', { roomId: id, settings: { permission } });
+            setShowSettings(false);
+        } catch (e) { alert(e.response?.data?.error || 'Failed'); }
+    };
+
     const approveRequest = async (reqId) => {
         await API.put(`/rooms/requests/${reqId}/approve`);
         loadRequests(); loadRoom();
@@ -102,64 +134,99 @@ export default function RoomLobby() {
         alert(`Invitations sent to ${selectedInvite.length} study buddy${selectedInvite.length > 1 ? 'ies' : ''}!`);
     };
 
+    const copyLink = () => {
+        if (!room?.link_token) return;
+        navigator.clipboard.writeText(`${window.location.origin}/app/rooms/join/${room.link_token}`);
+        alert('Link copied! 📋');
+    };
+
     if (loading) return <div className="loading-full"><div className="spinner" /></div>;
     if (!room) return null;
 
     const meta = PERM_META[room.permission] || PERM_META.open;
-    const pendingCount = requests.filter(r => r.status === 'pending').length;
 
     return (
         <div className="page">
             <div className="app-layout" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
-                {/* Header */}
+
+                {/* ── Header ─────────────────────────────────── */}
                 <header className="app-header">
                     <button className="back-btn" onClick={() => { socketRef.current?.emit('room_leave', { roomId: id, userId: user.id }); navigate('/app/rooms'); }}>← Leave</button>
                     <span className="page-title" style={{ flex: 1, textAlign: 'center' }}>{room.name}</span>
                     {canManage && (
                         <div style={{ display: 'flex', gap: 6 }}>
+                            {/* Requests badge */}
                             {pendingCount > 0 && (
-                                <button className="icon-btn" style={{ position: 'relative', background: 'var(--warning-bg)' }} onClick={() => setShowRequests(true)}>
+                                <button className="icon-btn" style={{ position: 'relative', background: 'var(--warning-bg)' }} onClick={() => navigate(`/app/rooms/${id}/requests`)}>
                                     🚪<span style={{ position: 'absolute', top: -4, right: -4, background: 'var(--warning)', color: 'white', fontSize: 10, fontWeight: 700, borderRadius: 8, padding: '1px 5px' }}>{pendingCount}</span>
                                 </button>
                             )}
+                            {/* Lock toggle */}
+                            <button className="icon-btn" style={{ background: room.is_locked ? 'var(--error-bg)' : '' }} onClick={toggleLock} disabled={locking} title={room.is_locked ? 'Unlock Room' : 'Lock Room'}>
+                                {room.is_locked ? '🔒' : '🔓'}
+                            </button>
+                            {/* Settings */}
+                            <button className="icon-btn" style={{ background: showSettings ? 'var(--primary-subtle)' : '' }} onClick={() => setShowSettings(v => !v)}>⚙️</button>
+                            {/* Invite */}
                             <button className="icon-btn" onClick={() => { API.get('/buddies').then(r => setBuddies(r.data)); setShowInvite(true); }}>➕</button>
                         </div>
                     )}
+                    {!canManage && room.permission !== 'private' && (
+                        <button className="icon-btn" onClick={() => { API.get('/buddies').then(r => setBuddies(r.data)); setShowInvite(true); }} title="Invite buddies">➕</button>
+                    )}
                 </header>
 
-                <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                    {/* Room info */}
-                    <div style={{ padding: '14px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
-                            <span style={{ fontSize: 13, fontWeight: 700, color: meta.color, background: `${meta.color}12`, borderRadius: 20, padding: '3px 10px', border: `1px solid ${meta.color}30` }}>{meta.icon} {meta.label}</span>
-                            <span style={{ fontSize: 13, color: 'var(--text-3)' }}>👥 {room.participant_count}{room.capacity ? `/${room.capacity}` : ''}</span>
+                {/* ── Host Settings inline panel ──────────────── */}
+                {showSettings && canManage && (
+                    <div style={{ background: 'var(--surface)', borderBottom: '1px solid var(--border)', padding: '12px 16px' }}>
+                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 }}>Room Settings</div>
+                        <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: 8 }}>Change access level:</div>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                            {[['open', '🌍 Open'], ['link', '🔗 Link'], ['request', '🚪 Request'], ['private', '🔒 Private']].map(([perm, label]) => (
+                                <button key={perm} onClick={() => perm !== room.permission && window.confirm(`Change room to "${label}"?`) && changePermission(perm)}
+                                    style={{ fontSize: 12, padding: '5px 12px', borderRadius: 20, border: `1px solid ${room.permission === perm ? 'var(--primary)' : 'var(--border)'}`, background: room.permission === perm ? 'var(--primary)' : 'var(--surface)', color: room.permission === perm ? 'white' : 'var(--text-2)', cursor: 'pointer', fontWeight: room.permission === perm ? 700 : 400 }}>
+                                    {label}
+                                </button>
+                            ))}
                         </div>
-                        <div style={{ fontSize: 13, color: 'var(--text-2)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                        {room.permission === 'link' && room.link_token && (
+                            <div style={{ marginTop: 10, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-3)', fontFamily: 'monospace', flex: 1, wordBreak: 'break-all' }}>{window.location.origin}/app/rooms/join/{room.link_token}</span>
+                                <button className="btn btn-primary btn-sm" onClick={copyLink}>📋 Copy</button>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    {/* ── Room info bar ─────────────────────── */}
+                    <div style={{ padding: '12px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--border)' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                            <span style={{ fontSize: 12, fontWeight: 700, color: meta.color, background: `${meta.color}12`, borderRadius: 20, padding: '2px 10px', border: `1px solid ${meta.color}30` }}>{meta.icon} {meta.label}</span>
+                            <span style={{ fontSize: 12, color: 'var(--text-3)' }}>👥 {room.participant_count}{room.capacity ? `/${room.capacity}` : ''}</span>
+                            {room.is_locked && <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--error)', background: 'var(--error-bg)', borderRadius: 20, padding: '2px 8px' }}>🔒 LOCKED</span>}
+                        </div>
+                        <div style={{ fontSize: 12, color: 'var(--text-2)', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                             {room.subject && <span>📚 {room.subject}</span>}
                             <span>{MODE_LABEL[room.mode]}</span>
                             <span>⏱️ {room.duration_hrs}h</span>
                         </div>
                     </div>
 
-                    {/* Participants row */}
-                    <div style={{ padding: '12px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', gap: -8, overflowX: 'auto' }}>
-                        <div style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.6, marginRight: 12, alignSelf: 'center', flexShrink: 0 }}>
-                            Participants ({room.participant_count})
-                        </div>
-                        <div style={{ display: 'flex', gap: 6, overflowX: 'auto', scrollbarWidth: 'none' }}>
+                    {/* ── Participants avatars ──────────────── */}
+                    <div style={{ padding: '10px 16px', background: 'var(--surface)', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: 10, overflowX: 'auto' }}>
+                        <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-3)', textTransform: 'uppercase', letterSpacing: 0.5, flexShrink: 0 }}>Participants ({room.participant_count})</span>
+                        <div style={{ display: 'flex', gap: 4, overflowX: 'auto', scrollbarWidth: 'none' }}>
                             {(room.participants || []).map((p, i) => (
-                                <div key={p.id || i} title={p.name + (p.role === 'host' ? ' (Host)' : p.role === 'co_host' ? ' (Co-Host)' : '')}
-                                    style={{ position: 'relative', flexShrink: 0 }}>
-                                    <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--primary-subtle)', border: `2px solid ${p.role === 'host' ? 'var(--warning)' : p.role === 'co_host' ? 'var(--primary)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18 }}>
-                                        {p.avatar}
-                                    </div>
-                                    {p.role === 'host' && <div style={{ position: 'absolute', bottom: -2, right: -2, fontSize: 10 }}>👑</div>}
+                                <div key={p.id || i} title={p.name + (p.role === 'host' ? ' (Host)' : p.role === 'co_host' ? ' (Co-Host)' : '')} style={{ position: 'relative', flexShrink: 0 }}>
+                                    <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--primary-subtle)', border: `2px solid ${p.role === 'host' ? 'var(--warning)' : p.role === 'co_host' ? 'var(--primary)' : 'var(--border)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{p.avatar}</div>
+                                    {p.role === 'host' && <div style={{ position: 'absolute', bottom: -2, right: -2, fontSize: 9 }}>👑</div>}
                                 </div>
                             ))}
                         </div>
                     </div>
 
-                    {/* Lobby chat */}
+                    {/* ── Lobby chat ───────────────────────── */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                         <div style={{ textAlign: 'center', fontSize: 13, color: 'var(--text-3)', padding: '10px 0' }}>
                             👋 Welcome to the lobby! Chat while you wait for the session to start.
@@ -168,25 +235,22 @@ export default function RoomLobby() {
                             <div key={i} style={{ display: 'flex', gap: 8 }}>
                                 <div style={{ fontSize: 20, flexShrink: 0 }}>{m.senderAvatar}</div>
                                 <div>
-                                    <div style={{ fontSize: 12, fontWeight: 600, color: m.senderId === user.id ? 'var(--primary)' : 'var(--text-3)', marginBottom: 2 }}>{m.senderId === user.id ? 'You' : m.senderName}</div>
-                                    <div style={{ background: m.senderId === user.id ? 'var(--primary)' : 'var(--surface)', color: m.senderId === user.id ? 'white' : 'var(--text)', border: m.senderId === user.id ? 'none' : '1px solid var(--border)', borderRadius: 12, padding: '8px 12px', fontSize: 14 }}>
-                                        {m.content}
-                                    </div>
+                                    <div style={{ fontSize: 11, fontWeight: 600, color: m.senderId === user.id ? 'var(--primary)' : 'var(--text-3)', marginBottom: 2 }}>{m.senderId === user.id ? 'You' : m.senderName}</div>
+                                    <div style={{ background: m.senderId === user.id ? 'var(--primary)' : 'var(--surface)', color: m.senderId === user.id ? 'white' : 'var(--text)', border: m.senderId === user.id ? 'none' : '1px solid var(--border)', borderRadius: 12, padding: '8px 12px', fontSize: 14 }}>{m.content}</div>
                                 </div>
                             </div>
                         ))}
                         <div ref={msgEndRef} />
                     </div>
 
-                    {/* Input + start */}
+                    {/* ── Input & action bar ───────────────── */}
                     <div style={{ padding: '12px 16px', background: 'var(--surface)', borderTop: '1px solid var(--border)', display: 'flex', flexDirection: 'column', gap: 10, paddingBottom: 'max(12px, env(safe-area-inset-bottom))' }}>
                         <div style={{ display: 'flex', gap: 8 }}>
-                            <input className="chat-text-input" style={{ flex: 1 }} value={msgInput} onChange={e => setMsgInput(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && sendMsg()} placeholder="Lobby chat..." />
+                            <input className="chat-text-input" style={{ flex: 1 }} value={msgInput} onChange={e => setMsgInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && sendMsg()} placeholder="Lobby chat..." />
                             <button className="btn btn-ghost btn-sm" onClick={sendMsg} disabled={!msgInput.trim()}>Send</button>
                         </div>
                         {isHost && room.status === 'lobby' && (
-                            <button className="btn btn-primary btn-block" onClick={startSession} disabled={starting} style={{ height: 52, fontSize: 16 }}>
+                            <button className="btn btn-primary btn-block" onClick={startSession} disabled={starting} style={{ height: 50, fontSize: 15 }}>
                                 {starting ? 'Starting...' : '🚀 Start Study Session'}
                             </button>
                         )}
@@ -196,7 +260,7 @@ export default function RoomLobby() {
                             </div>
                         )}
                         {room.status === 'active' && (
-                            <button className="btn btn-primary btn-block" onClick={() => navigate(`/app/rooms/${id}/session`)} style={{ height: 52, fontSize: 16 }}>
+                            <button className="btn btn-primary btn-block" onClick={() => navigate(`/app/rooms/${id}/session`)} style={{ height: 50, fontSize: 15 }}>
                                 ▶ Rejoin Active Session
                             </button>
                         )}
@@ -204,7 +268,7 @@ export default function RoomLobby() {
                 </div>
             </div>
 
-            {/* Join Requests Modal */}
+            {/* ── Join Requests Modal ──────────────────────── */}
             {showRequests && (
                 <div className="modal-overlay" onClick={e => e.target.className === 'modal-overlay' && setShowRequests(false)}>
                     <div className="modal-box">
@@ -225,6 +289,7 @@ export default function RoomLobby() {
                                 <div style={{ display: 'flex', gap: 8, marginTop: 10 }}>
                                     <button className="btn btn-primary btn-sm" onClick={() => approveRequest(r.id)}>✓ Approve</button>
                                     <button className="btn btn-danger btn-sm" onClick={() => denyRequest(r.id)}>✕ Deny</button>
+                                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/app/partner/${r.user_id}`)}>View Profile</button>
                                 </div>
                             </div>
                         ))}
@@ -232,17 +297,23 @@ export default function RoomLobby() {
                 </div>
             )}
 
-            {/* Invite Modal */}
+            {/* ── Invite Modal ─────────────────────────────── */}
             {showInvite && (
                 <div className="modal-overlay" onClick={e => e.target.className === 'modal-overlay' && setShowInvite(false)}>
                     <div className="modal-box">
                         <button className="modal-close" onClick={() => setShowInvite(false)}>✕</button>
                         <h2 className="modal-title">Invite Study Buddies</h2>
                         <p className="modal-sub" style={{ marginBottom: 16 }}>to "{room.name}"</p>
+                        {room.permission === 'link' && room.link_token && (
+                            <div style={{ background: 'var(--primary-subtle)', borderRadius: 8, padding: '10px 12px', marginBottom: 14, display: 'flex', gap: 8, alignItems: 'center' }}>
+                                <span style={{ fontSize: 12, color: 'var(--text-2)', flex: 1 }}>📋 Or share the room link</span>
+                                <button className="btn btn-primary btn-sm" onClick={copyLink}>Copy Link</button>
+                            </div>
+                        )}
                         {buddies.length === 0 ? (
                             <div className="empty-state-sm">No study buddies to invite yet.</div>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginBottom: 14 }}>
                                 {buddies.map(b => {
                                     const partnerId = b.buddy_id === user?.id ? b.user_id : b.buddy_id;
                                     const sel = selectedInvite.includes(partnerId);
@@ -252,7 +323,7 @@ export default function RoomLobby() {
                                             <span style={{ fontSize: 22 }}>{b.avatar}</span>
                                             <div>
                                                 <div style={{ fontWeight: 600 }}>{b.name}</div>
-                                                <div style={{ fontSize: 12, color: 'var(--text-3)' }}>{b.institution}</div>
+                                                <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{b.institution}</div>
                                             </div>
                                         </label>
                                     );

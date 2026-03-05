@@ -4,6 +4,18 @@ const { v4: uuidv4 } = require('uuid');
 const pool = require('../db');
 const auth = require('../middleware/auth');
 
+// io instance injected by server.js after creation
+let _io = null;
+router.setIO = (io) => { _io = io; };
+
+// emit to a specific user's socket (best-effort)
+function emitToUser(userId, event, data) {
+    if (!_io) return;
+    // _io.userSockets is a Map<userId, socketId> set up in server.js
+    const sid = _io.userSockets?.get(userId);
+    if (sid) _io.to(sid).emit(event, data);
+}
+
 const ok = (req, res, next) => {
     const e = validationResult(req);
     if (!e.isEmpty()) return res.status(400).json({ error: e.array()[0].msg });
@@ -228,10 +240,12 @@ router.post('/:id/join', auth, param('id').isUUID(), ok, async (req, res) => {
 });
 
 // ── GET /api/rooms/join/:token — join via shareable link ──────
+// NOTE: This MUST stay before /:id routes so Express doesn't treat token as a UUID id
 router.get('/join/:token', auth, async (req, res) => {
     try {
         const r = await pool.query(
-            `SELECT sr.*, u.name AS host_name, u.avatar AS host_avatar
+            `SELECT sr.*, u.name AS host_name, u.avatar AS host_avatar, u.rating AS host_rating,
+             (SELECT COUNT(*) FROM room_participants rp WHERE rp.room_id=sr.id AND rp.is_active=TRUE) AS participant_count
        FROM study_rooms sr JOIN users u ON u.id=sr.host_id
        WHERE sr.link_token=$1 AND sr.permission='link'`, [req.params.token]
         );
@@ -244,6 +258,37 @@ router.get('/join/:token', auth, async (req, res) => {
             return res.status(403).json({ error: 'Link has reached max uses' });
         res.json(room);
     } catch (e) { res.status(500).json({ error: 'Failed' }); }
+});
+
+// ── GET /api/rooms/:id/my-status — user's status in a room ───
+router.get('/:id/my-status', auth, param('id').isUUID(), ok, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.user.id;
+
+        // Check if participant
+        const part = await pool.query(
+            'SELECT role FROM room_participants WHERE room_id=$1 AND user_id=$2 AND is_active=TRUE',
+            [id, userId]
+        );
+        if (part.rows.length) return res.json({ status: part.rows[0].role }); // host, co_host, participant
+
+        // Check if invited
+        const inv = await pool.query(
+            `SELECT id FROM room_invitations WHERE room_id=$1 AND invitee_id=$2 AND status='pending' AND expires_at > NOW()`,
+            [id, userId]
+        );
+        if (inv.rows.length) return res.json({ status: 'invited', invitation_id: inv.rows[0].id });
+
+        // Check if pending request
+        const req_r = await pool.query(
+            `SELECT id, status FROM room_join_requests WHERE room_id=$1 AND user_id=$2`,
+            [id, userId]
+        );
+        if (req_r.rows.length) return res.json({ status: req_r.rows[0].status === 'pending' ? 'requested' : req_r.rows[0].status });
+
+        return res.json({ status: 'none' });
+    } catch (e) { console.error(e); res.status(500).json({ error: 'Failed' }); }
 });
 
 // ── POST /api/rooms/:id/request — request to join ────────────
@@ -292,11 +337,17 @@ router.post('/:id/request',
                 return res.json({ status: 'approved', auto: true });
             }
 
-            // notify host
+            // notify host via DB notification + real-time socket
             const me = await pool.query('SELECT name FROM users WHERE id=$1', [userId]);
             await notify(room.host_id, '🚪', 'New join request!',
                 `${me.rows[0].name} wants to join "${room.name}"`,
                 'room', 'high', `/app/rooms/${id}/requests`);
+
+            // Real-time: push to host's socket
+            emitToUser(room.host_id, 'room_request_new', {
+                roomId: id,
+                request: { ...req_r.rows[0], name: me.rows[0].name }
+            });
 
             res.status(201).json({ status: 'pending' });
         } catch (e) { console.error(e); res.status(500).json({ error: 'Failed to send request' }); }
@@ -349,7 +400,14 @@ router.put('/requests/:reqId/approve', auth, param('reqId').isUUID(), ok, async 
         const roomName = await pool.query('SELECT name FROM study_rooms WHERE id=$1', [room_id]);
         await notify(user_id, '✅', 'Join request approved!',
             `You can now join "${roomName.rows[0]?.name}"`,
-            'room', 'urgent', `/app/rooms/${room_id}`);
+            'room', 'urgent', `/app/rooms/${room_id}/lobby`);
+
+        // Real-time: notify requester
+        emitToUser(user_id, 'room_request_approved', {
+            roomId: room_id,
+            roomName: roomName.rows[0]?.name
+        });
+
         res.json({ ok: true });
     } catch (e) { console.error(e); res.status(500).json({ error: 'Failed' }); }
 });
