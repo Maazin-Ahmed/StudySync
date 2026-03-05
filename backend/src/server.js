@@ -53,7 +53,8 @@ app.use('/api/buddies', require('./routes/buddies'));
 app.use('/api/messages', require('./routes/messages'));
 app.use('/api/sessions', require('./routes/sessions'));
 app.use('/api/notifications', require('./routes/notifications'));
-app.use('/api/rooms', require('./routes/rooms'));
+const roomsRouter = require('./routes/rooms');
+app.use('/api/rooms', roomsRouter);
 
 
 app.get('/api/health', (req, res) => res.json({ ok: true, ts: Date.now(), env: process.env.NODE_ENV || 'development' }));
@@ -70,6 +71,11 @@ app.use((req, res) => res.status(404).json({ error: 'Endpoint not found' }));
 // ─── Socket.io ──────────────────────────────────────────────
 const onlineUsers = new Map(); // userId → socketId
 const roomSockets = new Map(); // roomId → Set(socketId)
+
+// Expose userSockets map on the io instance so rooms.js can emit to specific users
+io.userSockets = onlineUsers;
+// Wire up real-time helpers in rooms router
+roomsRouter.setIO(io);
 
 io.on('connection', (socket) => {
     socket.on('join', (userId) => {
