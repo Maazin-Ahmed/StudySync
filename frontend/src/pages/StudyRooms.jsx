@@ -205,11 +205,16 @@ export default function StudyRooms() {
                 </header>
                 <div className="page-content">
                     {/* Tab bar with badge */}
-                    <div className="tab-bar">
-                        <button className={`tab-btn ${tab === 'browse' ? 'active' : ''}`} onClick={() => setTab('browse')}>Browse Rooms</button>
-                        <button className={`tab-btn ${tab === 'my' ? 'active' : ''}`} onClick={() => setTab('my')}>
-                            My Rooms {(myData.invitations.length + totalPendingRequests) > 0 && (
-                                <span className="req-badge">{myData.invitations.length + totalPendingRequests}</span>
+                    <div className="tab-bar" style={{ display: 'flex', gap: 10, padding: 4, background: 'var(--surface)', borderRadius: 12, marginBottom: 20 }}>
+                        <button className={`tab-btn ${tab === 'browse' ? 'active' : ''}`} onClick={() => setTab('browse')} style={{ flex: 1 }}>Browse Rooms</button>
+                        <button className={`tab-btn ${tab === 'my' ? 'active' : ''}`} onClick={() => setTab('my')} style={{ flex: 1 }}>
+                            My Rooms {(totalPendingRequests) > 0 && (
+                                <span className="req-badge">{totalPendingRequests}</span>
+                            )}
+                        </button>
+                        <button className={`tab-btn ${tab === 'invitations' ? 'active' : ''}`} onClick={() => setTab('invitations')} style={{ flex: 1 }}>
+                            Invitations {(myData.invitations.length) > 0 && (
+                                <span className="req-badge">{myData.invitations.length}</span>
                             )}
                         </button>
                     </div>
@@ -251,11 +256,16 @@ export default function StudyRooms() {
                             {loading ? (
                                 [1, 2, 3].map(i => <div key={i} className="partner-card"><div className="skeleton skel-line w-40" /><div className="skeleton skel-line w-75" /><div className="skeleton skel-line w-50" /></div>)
                             ) : rooms.length === 0 ? (
-                                <div className="empty-state">
-                                    <div className="empty-icon">🏠</div>
-                                    <div className="empty-title">No active rooms</div>
-                                    <div className="empty-sub">Be the first to create a study room!</div>
-                                    <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/rooms/create')}>Create Room</button>
+                                <div className="empty-state" style={{ padding: '40px 20px', background: 'var(--surface-2)', borderRadius: 16 }}>
+                                    <div className="empty-icon" style={{ fontSize: 50, marginBottom: 10 }}>🔥</div>
+                                    <div className="empty-title" style={{ fontSize: 18, fontWeight: 700 }}>No active public rooms right now</div>
+                                    <div className="empty-sub" style={{ fontSize: 14, color: 'var(--text-3)', marginBottom: 20 }}>Be the first to create one!</div>
+                                    <button className="btn btn-primary" onClick={() => navigate('/app/rooms/create')}>🚀 Create Public Room</button>
+
+                                    <div style={{ marginTop: 30, paddingTop: 30, borderTop: '1px solid var(--border)', width: '100%' }}>
+                                        <div style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 15 }}>Or create a private room with friends:</div>
+                                        <button className="btn btn-outline" onClick={() => navigate('/app/rooms/create?type=private')}>🔒 Create Private Room</button>
+                                    </div>
                                 </div>
                             ) : (
                                 <>
@@ -268,38 +278,8 @@ export default function StudyRooms() {
 
                     {/* ── MY ROOMS TAB ───────────────────────────── */}
                     {tab === 'my' && (
-                        <>
-                            {/* Invitations */}
-                            {myData.invitations.length > 0 && (
-                                <>
-                                    <div className="section-label" style={{ color: 'var(--primary)' }}>💌 INVITATIONS ({myData.invitations.length})</div>
-                                    {myData.invitations.map(inv => {
-                                        const perm = PERM_META[inv.room_permission] || PERM_META.private;
-                                        return (
-                                            <div key={inv.id} className="partner-card" style={{ borderLeft: '3px solid var(--primary)' }}>
-                                                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
-                                                    <span style={{ fontSize: 26 }}>{inv.inviter_avatar}</span>
-                                                    <div>
-                                                        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{inv.inviter_name} invited you</div>
-                                                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{perm.icon} {perm.label}</div>
-                                                    </div>
-                                                </div>
-                                                <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>{inv.room_name}</div>
-                                                <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: inv.message ? 8 : 12 }}>
-                                                    {inv.subject ? `📚 ${inv.subject}` : ''} {inv.subject ? '•' : ''} {MODE_LABEL[inv.mode]}
-                                                </div>
-                                                {inv.message && (
-                                                    <div className="req-message" style={{ marginBottom: 10 }}>"{inv.message}"</div>
-                                                )}
-                                                <div className="pc-actions">
-                                                    <button className="btn btn-primary btn-sm" onClick={() => acceptInvite(inv)}>✓ Accept</button>
-                                                    <button className="btn btn-danger btn-sm" onClick={() => declineInvite(inv)}>Decline</button>
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </>
-                            )}
+                        <div style={{ animation: 'fadeUp 0.3s ease-out' }}>
+
 
                             {/* Hosting */}
                             {myData.hosting.length > 0 && (
@@ -327,49 +307,94 @@ export default function StudyRooms() {
                                 </>
                             )}
 
-                            {myData.hosting.length === 0 && myData.joined.length === 0 && myData.invitations.length === 0 && !loading && (
-                                <div className="empty-state">
-                                    <div className="empty-icon">🏠</div>
-                                    <div className="empty-title">No rooms yet</div>
-                                    <div className="empty-sub">Create a room or browse public rooms to get started.</div>
-                                    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 12, flexWrap: 'wrap' }}>
-                                        <button className="btn btn-primary btn-sm" onClick={() => navigate('/app/rooms/create')}>Create Room</button>
-                                        <button className="btn btn-ghost btn-sm" onClick={() => setTab('browse')}>Browse Rooms</button>
+                            {myData.hosting.length === 0 && myData.joined.length === 0 && !loading && (
+                                <div className="empty-state" style={{ background: 'var(--surface-2)', padding: '30px', borderRadius: 16 }}>
+                                    <div className="empty-icon" style={{ fontSize: 40, marginBottom: 15 }}>📅</div>
+                                    <div className="empty-title">No rooms scheduled</div>
+                                    <div className="empty-sub">You don't have any scheduled sessions yet.</div>
+                                    <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 15, flexWrap: 'wrap' }}>
+                                        <button className="btn btn-primary" onClick={() => navigate('/app/rooms/create')}>Create Session</button>
                                     </div>
                                 </div>
                             )}
-                        </>
+                        </div>
                     )}
+
+                    {/* ── INVITATIONS TAB ─────────────────────────── */}
+                    {tab === 'invitations' && (
+                        <div style={{ animation: 'fadeUp 0.3s ease-out' }}>
+                            {/* Invitations */}
+                            {myData.invitations.length > 0 ? (
+                                <>
+                                    <div className="section-label" style={{ color: 'var(--primary)' }}>💌 PENDING INVITATIONS ({myData.invitations.length})</div>
+                                    {myData.invitations.map(inv => {
+                                        const perm = PERM_META[inv.room_permission] || PERM_META.private;
+                                        return (
+                                            <div key={inv.id} className="partner-card" style={{ borderLeft: '3px solid var(--primary)', transition: 'transform 0.2s', ':active': { transform: 'scale(0.98)' } }}>
+                                                <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10 }}>
+                                                    <span style={{ fontSize: 26 }}>{inv.inviter_avatar}</span>
+                                                    <div>
+                                                        <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--text)' }}>{inv.inviter_name} invited you</div>
+                                                        <div style={{ fontSize: 11, color: 'var(--text-3)' }}>{perm.icon} {perm.label} • {fmtTime(inv.created_at)}</div>
+                                                    </div>
+                                                </div>
+                                                <div style={{ fontFamily: 'var(--font-head)', fontSize: 16, fontWeight: 800, color: 'var(--text)', marginBottom: 4 }}>{inv.room_name}</div>
+                                                <div style={{ fontSize: 12, color: 'var(--text-3)', marginBottom: inv.message ? 8 : 12 }}>
+                                                    {inv.subject ? `📚 ${inv.subject}` : ''} {inv.subject ? '•' : ''} {MODE_LABEL[inv.mode]}
+                                                </div>
+                                                {inv.message && (
+                                                    <div className="req-message" style={{ marginBottom: 10, fontStyle: 'italic', background: 'var(--surface-3)', padding: 10, borderRadius: 8 }}>"{inv.message}"</div>
+                                                )}
+                                                <div className="pc-actions" style={{ marginTop: 15 }}>
+                                                    <button className="btn btn-primary" style={{ flex: 1 }} onClick={() => acceptInvite(inv)}>✓ Accept</button>
+                                                    <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => declineInvite(inv)}>Decline</button>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </>
+                            ) : (
+                                <div className="empty-state" style={{ background: 'var(--surface-2)', padding: '30px', borderRadius: 16 }}>
+                                    <div className="empty-icon" style={{ fontSize: 40, marginBottom: 15 }}>📬</div>
+                                    <div className="empty-title">Inbox Zero</div>
+                                    <div className="empty-sub">You don't have any pending invitations right now.</div>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
                 </div>
                 <BottomNav />
             </div>
 
             {/* ── Request to Join Modal ─────────────────────── */}
-            {requestModal && (
-                <div className="modal-overlay" onClick={e => e.target.className === 'modal-overlay' && setRequestModal(null)}>
-                    <div className="modal-box">
-                        <button className="modal-close" onClick={() => setRequestModal(null)}>✕</button>
-                        <div className="modal-logo">🚪</div>
-                        <h2 className="modal-title">Request to Join</h2>
-                        <p className="modal-sub" style={{ marginBottom: 16 }}>"{requestModal.name}" hosted by {requestModal.host_name}</p>
-                        <div style={{ display: 'flex', gap: 10, fontSize: 12, color: 'var(--text-3)', marginBottom: 16, background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px', flexWrap: 'wrap' }}>
-                            <span>👥 {requestModal.participant_count} currently studying</span>
-                            {requestModal.capacity && <span>• Max {requestModal.capacity}</span>}
-                            <span>• {MODE_LABEL[requestModal.mode]}</span>
+            {
+                requestModal && (
+                    <div className="modal-overlay" onClick={e => e.target.className === 'modal-overlay' && setRequestModal(null)}>
+                        <div className="modal-box">
+                            <button className="modal-close" onClick={() => setRequestModal(null)}>✕</button>
+                            <div className="modal-logo">🚪</div>
+                            <h2 className="modal-title">Request to Join</h2>
+                            <p className="modal-sub" style={{ marginBottom: 16 }}>"{requestModal.name}" hosted by {requestModal.host_name}</p>
+                            <div style={{ display: 'flex', gap: 10, fontSize: 12, color: 'var(--text-3)', marginBottom: 16, background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px', flexWrap: 'wrap' }}>
+                                <span>👥 {requestModal.participant_count} currently studying</span>
+                                {requestModal.capacity && <span>• Max {requestModal.capacity}</span>}
+                                <span>• {MODE_LABEL[requestModal.mode]}</span>
+                            </div>
+                            <div className="form-group">
+                                <label>Why do you want to join? {!requestModal.require_join_message && '(Optional)'}</label>
+                                <textarea value={reqMsg} onChange={e => setReqMsg(e.target.value)} rows={3} maxLength={200}
+                                    placeholder={`I'm also studying ${requestModal.subject ? requestModal.subject : 'this topic'} and would love to join your session...`} />
+                                <span style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'right', display: 'block', marginTop: 4 }}>{reqMsg.length}/200</span>
+                            </div>
+                            <div style={{ fontSize: 12, color: 'var(--text-3)', background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
+                                ℹ️ Your profile (name, rating, institution) will be shared with the host.
+                            </div>
+                            <button className="btn btn-primary btn-block" onClick={sendRequest}>Send Request →</button>
                         </div>
-                        <div className="form-group">
-                            <label>Why do you want to join? {!requestModal.require_join_message && '(Optional)'}</label>
-                            <textarea value={reqMsg} onChange={e => setReqMsg(e.target.value)} rows={3} maxLength={200}
-                                placeholder={`I'm also studying ${requestModal.subject ? requestModal.subject : 'this topic'} and would love to join your session...`} />
-                            <span style={{ fontSize: 11, color: 'var(--text-3)', textAlign: 'right', display: 'block', marginTop: 4 }}>{reqMsg.length}/200</span>
-                        </div>
-                        <div style={{ fontSize: 12, color: 'var(--text-3)', background: 'var(--surface-2)', borderRadius: 8, padding: '8px 12px', marginBottom: 16 }}>
-                            ℹ️ Your profile (name, rating, institution) will be shared with the host.
-                        </div>
-                        <button className="btn btn-primary btn-block" onClick={sendRequest}>Send Request →</button>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

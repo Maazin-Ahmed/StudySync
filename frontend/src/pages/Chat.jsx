@@ -21,7 +21,29 @@ export default function Chat() {
     const [messages, setMessages] = useState([]);
     const [input, setInput] = useState('');
     const [showTemplates, setShowTemplates] = useState(false);
+
+    // Quick Start Room State
+    const [showQuickStart, setShowQuickStart] = useState(false);
+    const [qsSubject, setQsSubject] = useState('');
+    const [qsMode, setQsMode] = useState('silent');
+    const [qsDuration, setQsDuration] = useState(120);
     const bottomRef = useRef(null);
+
+    const handleQuickStart = async () => {
+        try {
+            const r = await API.post('/rooms/quick-start', {
+                partnerId: partnerId,
+                subject: qsSubject,
+                mode: qsMode,
+                duration: qsDuration
+            });
+            setShowQuickStart(false);
+            navigate(`/app/rooms/${r.data.id}/lobby`);
+        } catch (e) {
+            alert(e.response?.data?.error || 'Failed to start room');
+        }
+    };
+
 
     useEffect(() => {
         API.get(`/users/${partnerId}`).then(r => setPartner(r.data)).catch(() => { });
@@ -52,19 +74,28 @@ export default function Chat() {
 
     return (
         <div className="chat-layout">
-            <header className="chat-header-bar">
-                <button className="back-btn" onClick={() => navigate('/app/chats')}>←</button>
-                <div className="chat-header-info">
-                    <div className="chat-header-avatar">{partner?.avatar || '👤'}</div>
-                    <div>
-                        <div className="chat-partner-name">{partner?.name || '...'}</div>
-                        <div className="chat-partner-status">🟢 Active now</div>
+            <header className="chat-header-bar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <button className="back-btn" onClick={() => navigate('/app/chats')}>←</button>
+                    <div className="chat-header-info">
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <div className="chat-header-avatar">{partner?.avatar || '👤'}</div>
+                            <div>
+                                <div className="chat-partner-name" style={{ fontWeight: 700, fontSize: 16 }}>{partner?.name || '...'}</div>
+                                <div className="chat-partner-status" style={{ fontSize: 11, color: 'var(--success)' }}>🟢 Active now</div>
+                            </div>
+                        </div>
                     </div>
                 </div>
-                <button className="icon-btn" onClick={() => navigate('/app/session/create')} title="Schedule session">📅</button>
             </header>
 
-            <div className="chat-messages-area">
+            <div style={{ padding: '10px 15px', background: 'var(--surface-2)', borderBottom: '1px solid var(--border)', display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 12, fontWeight: 700, color: 'var(--text-3)' }}>⚡ Actions:</span>
+                <button className="btn btn-ghost btn-sm" style={{ flex: 1, border: '1px solid var(--border)' }} onClick={() => navigate('/app/session/create')}>📅 Schedule</button>
+                <button className="btn btn-primary btn-sm" style={{ flex: 1, boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)' }} onClick={() => setShowQuickStart(true)}>🎯 Start Room Now</button>
+            </div>
+
+            <div className="chat-messages-area" style={{ flex: 1, overflowY: 'auto' }}>
                 {messages.length === 0 && <div className="chat-system-msg">Say hello! 👋</div>}
                 <div className="chat-day-label">Today</div>
                 {messages.map((m, i) => {
@@ -102,6 +133,61 @@ export default function Chat() {
                                 ))}
                             </div>
                         ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Quick Start Room Modal */}
+            {showQuickStart && (
+                <div className="modal-overlay" onClick={(e) => e.target.className === 'modal-overlay' && setShowQuickStart(false)}>
+                    <div className="modal-box" style={{ animation: 'fadeUp 0.2s cubic-bezier(0.1, 0.9, 0.2, 1)' }}>
+                        <button className="modal-close" onClick={() => setShowQuickStart(false)}>✕</button>
+                        <h2 className="modal-title" style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 20 }}>
+                            🎯 Start Study Room
+                        </h2>
+                        <p style={{ fontSize: 14, color: 'var(--text-2)', marginBottom: 20 }}>
+                            Start an instant private session with <strong>{partner?.name}</strong>
+                        </p>
+
+                        <div className="form-group">
+                            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Subject (Optional)</label>
+                            <select value={qsSubject} onChange={e => setQsSubject(e.target.value)} style={{ padding: '8px 12px', borderRadius: 8, background: 'var(--surface-2)', border: '1px solid var(--border)', color: 'var(--text)', width: '100%', fontSize: 14 }}>
+                                <option value="">Select subject...</option>
+                                {['Data Structures & Algorithms', 'Mathematics', 'Physics', 'Chemistry', 'Biology', 'Operating Systems', 'Computer Networks'].map(s => <option key={s} value={s}>{s}</option>)}
+                            </select>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: 15 }}>
+                            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Study Mode</label>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                {[['silent', '🤫 Silent'], ['discussion', '💬 Discussion'], ['doubt', '❓ Doubt']].map(([v, l]) => (
+                                    <button key={v} className={`btn ${qsMode === v ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ flex: 1, padding: '8px 6px', fontSize: 13, transition: 'all 0.15s ease' }} onClick={() => setQsMode(v)}>
+                                        {l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="form-group" style={{ marginTop: 15 }}>
+                            <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-2)' }}>Duration</label>
+                            <div style={{ display: 'flex', gap: 10 }}>
+                                {[[60, '1 hr'], [120, '2 hrs'], [180, '3 hrs']].map(([v, l]) => (
+                                    <button key={v} className={`btn ${qsDuration === v ? 'btn-primary' : 'btn-outline'} btn-sm`} style={{ flex: 1, padding: '8px 6px', fontSize: 13, transition: 'all 0.15s ease' }} onClick={() => setQsDuration(v)}>
+                                        {l}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div style={{ background: 'var(--primary-subtle)', border: '1px solid var(--primary)', borderRadius: 8, padding: '12px 15px', marginTop: 24, marginBottom: 24, fontSize: 13, color: 'var(--text)', display: 'flex', gap: 10, alignItems: 'center' }}>
+                            <span style={{ fontSize: 20 }}>⚡</span>
+                            <span><strong>{partner?.name || 'Your partner'}</strong> will be notified instantly to join your room.</span>
+                        </div>
+
+                        <div style={{ display: 'flex', gap: 10 }}>
+                            <button className="btn btn-outline" style={{ flex: 1 }} onClick={() => setShowQuickStart(false)}>Cancel</button>
+                            <button className="btn btn-primary" style={{ flex: 2, boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)' }} onClick={handleQuickStart}>🎯 Create & Start</button>
+                        </div>
                     </div>
                 </div>
             )}

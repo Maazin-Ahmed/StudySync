@@ -160,8 +160,8 @@ export default function ActiveRoom() {
                 </div>
                 <div style={{ display: 'flex', gap: 6 }}>
                     <button className="icon-btn" onClick={() => setShowParticipants(true)} title="Participants">👥</button>
-                    {/* Show invite/share for everyone in non-private rooms */}
-                    {room?.permission !== 'private' && <button className="icon-btn" onClick={openInvite} title="Invite / Share">➕</button>}
+                    {/* Show invite/share for everyone, restrict private room invites to hosts only */}
+                    {(room?.permission !== 'private' || canManage) && <button className="btn btn-primary btn-sm" style={{ padding: '0 10px', display: 'flex', alignItems: 'center', gap: 4, boxShadow: '0 4px 10px rgba(var(--primary-rgb), 0.3)' }} onClick={openInvite} title="Invite Buddies"><span style={{ fontSize: 16 }}>+</span> Invite</button>}
                     {canManage && <button className="icon-btn" style={{ background: showHostPanel ? 'var(--primary-subtle)' : '' }} onClick={() => setShowHostPanel(v => !v)} title="Host Controls">⚙️</button>}
                     {!isHost && <button className="btn btn-danger btn-sm" onClick={leaveRoom}>Leave</button>}
                 </div>
