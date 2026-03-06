@@ -370,8 +370,84 @@ router.post('/',
                 }
             }
 
+            // Support frontend invitedUserIds payload directly mapping to invite_buddies functionality
+            if ((permission === 'private' || permission === 'request') && Array.isArray(req.body.invitedUserIds) && req.body.invitedUserIds.length > 0) {
+                const me = await pool.query('SELECT name FROM users WHERE id=$1', [hostId]);
+                for (const inviteeId of req.body.invitedUserIds.slice(0, 50)) {
+                    try {
+                        await pool.query(
+                            `INSERT INTO room_invitations (room_id,inviter_id,invitee_id,message) VALUES ($1,$2,$3,$4)`,
+                            [room.id, hostId, inviteeId, '']
+                        );
+                        await notify(inviteeId, '📝', `New invitation from ${me.rows[0].name}`,
+                            `${me.rows[0].name} invited you to join their study room!`,
+                            `/app/rooms/${room.id}`);
+                    } catch (err) { }
+                }
+            }
+
             res.status(201).json({ ...room, link_url: link_token ? `/app/rooms/join/${link_token}` : null });
         } catch (e) { console.error(e); res.status(500).json({ error: 'Failed to create room' }); }
+    }
+);
+
+// ── POST /api/rooms/quick-start — instantly start a room with buddy ──
+router.post('/quick-start',
+    auth,
+    body('partnerId').isUUID().withMessage('Partner ID must be a UUID'),
+    body('subject').optional({ values: 'falsy' }).trim().isLength({ max: 100 }),
+    body('mode').isIn(['silent', 'discussion', 'doubt']).withMessage('Invalid mode'),
+    body('duration').optional().isInt({ min: 10, max: 720 }).withMessage('Duration (mins) must be 10-720'),
+    validate,
+    async (req, res) => {
+        try {
+            const { partnerId, subject, mode, duration } = req.body;
+            const hostId = req.user.id;
+            const duration_hrs = duration ? duration / 60 : 2;
+
+            const me = await pool.query('SELECT name FROM users WHERE id=$1', [hostId]);
+            const partnerName = await pool.query('SELECT name FROM users WHERE id=$1', [partnerId]);
+
+            if (!partnerName.rows.length) {
+                return res.status(404).json({ error: 'Partner not found' });
+            }
+
+            const roomName = `Study Session: ${me.rows[0].name} & ${partnerName.rows[0].name}`;
+
+            const r = await pool.query(
+                `INSERT INTO study_rooms
+           (host_id,name,subject,topic,mode,permission,duration_hrs,capacity,scheduled_at,status,actual_start,started_at)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$11) RETURNING *`,
+                [hostId, roomName, subject || '', '', mode, 'private',
+                    duration_hrs, 2, new Date().toISOString(), 'active', new Date().toISOString()]
+            );
+            const room = r.rows[0];
+
+            // Host joins as host
+            await pool.query(
+                'INSERT INTO room_participants (room_id,user_id,role) VALUES ($1,$2,$3)',
+                [room.id, hostId, 'host']
+            );
+
+            // Create pending invitation for the partner
+            await pool.query(
+                `INSERT INTO room_invitations (room_id,inviter_id,invitee_id,message) VALUES ($1,$2,$3,$4)`,
+                [room.id, hostId, partnerId, "Let's study now!"]
+            );
+
+            // Notify partner
+            await notify(partnerId, '🚀', `${me.rows[0].name} started a study room with you!`,
+                'Join now to start studying.',
+                `/app/rooms/${room.id}`);
+
+            emitToUser(partnerId, 'room_quick_started', {
+                roomId: room.id,
+                inviterId: hostId,
+                inviterName: me.rows[0].name
+            });
+
+            res.status(201).json(room);
+        } catch (e) { console.error(e); res.status(500).json({ error: 'Failed' }); }
     }
 );
 
@@ -379,8 +455,8 @@ router.post('/',
 router.post('/:id/start', auth, param('id').isUUID(), validate, async (req, res) => {
     try {
         const r = await pool.query(
-            `UPDATE study_rooms SET status='active', started_at=NOW()
-       WHERE id=$1 AND host_id=$2 AND status='lobby' RETURNING *`,
+            `UPDATE study_rooms SET status = 'active', started_at = NOW()
+       WHERE id = $1 AND host_id = $2 AND status = 'lobby' RETURNING * `,
             [req.params.id, req.user.id]
         );
         if (!r.rows.length) return res.status(403).json({ error: 'Not authorized or already started' });
@@ -418,8 +494,8 @@ router.post('/:id/join', auth, param('id').isUUID(), validate, async (req, res) 
         }
 
         await pool.query(
-            `INSERT INTO room_participants (room_id,user_id,role) VALUES ($1,$2,'participant')
-       ON CONFLICT (room_id,user_id) DO UPDATE SET is_active=TRUE, left_at=NULL, joined_at=NOW()`,
+            `INSERT INTO room_participants(room_id, user_id, role) VALUES($1, $2, 'participant')
+       ON CONFLICT(room_id, user_id) DO UPDATE SET is_active = TRUE, left_at = NULL, joined_at = NOW()`,
             [id, userId]
         );
         res.json({ ok: true, room_id: id });
@@ -446,7 +522,7 @@ router.post('/:id/request',
             let autoApprove = false;
             if (room.auto_approve_buddies) {
                 const isBuddy = await pool.query(
-                    `SELECT id FROM study_buddies WHERE ((user_id=$1 AND buddy_id=$2) OR (user_id=$2 AND buddy_id=$1)) AND status='accepted'`,
+                    `SELECT id FROM study_buddies WHERE((user_id = $1 AND buddy_id = $2) OR(user_id = $2 AND buddy_id = $1)) AND status = 'accepted'`,
                     [userId, room.host_id]
                 );
                 if (isBuddy.rows.length) autoApprove = true;
@@ -457,16 +533,16 @@ router.post('/:id/request',
             }
 
             const req_r = await pool.query(
-                `INSERT INTO room_join_requests (room_id,user_id,message,status,reviewed_at)
-         VALUES ($1,$2,$3,$4,$5)
-         ON CONFLICT (room_id,user_id) DO UPDATE SET message=$3, status=$4, reviewed_at=$5 RETURNING *`,
+                `INSERT INTO room_join_requests(room_id, user_id, message, status, reviewed_at)
+            VALUES($1, $2, $3, $4, $5)
+         ON CONFLICT(room_id, user_id) DO UPDATE SET message = $3, status = $4, reviewed_at = $5 RETURNING * `,
                 [id, userId, req.body.message || '', autoApprove ? 'approved' : 'pending', autoApprove ? new Date() : null]
             );
 
             if (autoApprove) {
                 await pool.query(
-                    `INSERT INTO room_participants (room_id,user_id,role) VALUES ($1,$2,'participant')
-           ON CONFLICT (room_id,user_id) DO UPDATE SET is_active=TRUE, left_at=NULL, joined_at=NOW()`,
+                    `INSERT INTO room_participants(room_id, user_id, role) VALUES($1, $2, 'participant')
+           ON CONFLICT(room_id, user_id) DO UPDATE SET is_active = TRUE, left_at = NULL, joined_at = NOW()`,
                     [id, userId]
                 );
                 return res.json({ status: 'approved', auto: true });
